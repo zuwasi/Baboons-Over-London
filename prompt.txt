@@ -1,0 +1,23 @@
+Create a complete first-person shooter game in a single HTML file using Three.js (loaded from CDN). Save the file as game.html. The game must meet ALL of these requirements:
+
+GAME CONCEPT: Player is a human hunter on the streets of London. Enemies are baboons (monkeys). 5 levels of increasing difficulty.
+
+WEAPON - Pump-Action Shotgun: 10 rounds capacity, buckshot ammunition, 9 pellets per shot. Pump action required between shots (right-click to pump). Reload with R key. Left-click to fire.
+
+SPREAD/IMPACT CIRCLE MECHANICS: Base: 45cm impact circle at 50 meters. Closer than 50m: reduce circle by factor 0.02 for every 10 meters closer (Formula: spread_diameter = 0.45 * (0.98 ^ floor((50 - distance) / 10))). 50m to 130m: increase circle by factor 1.01 for every 10 meters farther (Formula: spread_diameter = 0.45 * (1.01 ^ floor((distance - 50) / 10))). 130 meters is the end of range. Implement this as the buckshot pellet spread cone.
+
+ENEMIES (Baboons): 3D models with body, head, arms, legs, eyes. Health bar above each baboon. AI: move toward player, melee attack when close. Death animation (fall over).
+
+ENVIRONMENT (London Streets): Asphalt road with dashed center lines. Buildings on both sides with windows. Sidewalks, street lamps with point lights. Parked cars, benches, bins, bollards. Fog for atmosphere.
+
+LEVELS: Level 1: 5 baboons, 100 HP, speed 2.0, unarmed, 80m area. Level 2: 8 baboons, 100 HP, speed 3.0, unarmed, 90m area. Level 3: 12 baboons, 120 HP, speed 3.5, unarmed, 100m area. Level 4: 15 baboons, 150 HP, speed 4.0, unarmed, 110m area. Level 5: 10 baboons, 200 HP, speed 4.0, ARMED WITH SAME SHOTGUN, 120m area. On level 5, baboons can shoot back at the player with the same shotgun.
+
+CONTROLS: WASD movement, Mouse look, Shift sprint. Left-click fire, Right-click pump, R reload, Esc pause. Pointer lock controls for FPS.
+
+HUD: Health bar (bottom left). Ammo display (bottom right) showing 10 shells. Level name and score (bottom center). Crosshair with dynamic spread circle indicator. Kill feed (top right).
+
+AUDIO: Gunshot sound (Web Audio API). Pump action sound. Reload sound. Baboon scream sound.
+
+EFFECTS: Muzzle flash. Damage screen flash when hit. Level transition screens. Game over and victory screens with stats. Pause menu.
+
+TECHNICAL: Single self-contained HTML file. Three.js from CDN (use ES modules with importmap). PointerLockControls from Three.js addons. No external dependencies other than Three.js CDN. Must work by opening the HTML file in a browser.

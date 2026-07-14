@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>London Baboon Hunter</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#000; font-family:'Segoe UI',Arial,sans-serif; }
+  #c { display:block; width:100%; height:100%; }
+
+  /* ---------- HUD ---------- */
+  #hud { position:fixed; inset:0; pointer-events:none; display:none; }
+  #healthBox { position:absolute; left:20px; bottom:20px; width:260px; }
+  #healthLabel { color:#fff; font-size:13px; letter-spacing:1px; text-shadow:0 0 4px #000; margin-bottom:4px; }
+  #healthBarOuter { width:100%; height:20px; background:rgba(0,0,0,.55); border:2px solid rgba(255,255,255,.6); border-radius:4px; overflow:hidden; }
+  #healthBarInner { height:100%; width:100%; background:linear-gradient(90deg,#c62828,#e53935,#66bb6a); transition:width .15s; }
+  #ammoBox { position:absolute; right:20px; bottom:20px; text-align:right; color:#fff; text-shadow:0 0 4px #000; }
+  #ammoCount { font-size:38px; font-weight:bold; }
+  #ammoState { font-size:13px; letter-spacing:1px; color:#ffca28; min-height:16px; }
+  #shells { margin-top:4px; display:flex; gap:3px; justify-content:flex-end; }
+  .shell { width:10px; height:26px; border-radius:3px 3px 2px 2px; background:linear-gradient(#d32f2f 70%,#b8963a 70%); border:1px solid rgba(0,0,0,.6); }
+  .shell.empty { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); }
+  #levelBox { position:absolute; left:50%; bottom:20px; transform:translateX(-50%); text-align:center; color:#fff; text-shadow:0 0 4px #000; }
+  #levelName { font-size:16px; letter-spacing:2px; }
+  #scoreLine { font-size:13px; color:#ffd54f; margin-top:2px; }
+  #baboonsLeft { font-size:13px; color:#ef9a9a; margin-top:2px; }
+
+  /* crosshair */
+  #crosshair { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
+  #crosshair .dot { position:absolute; left:50%; top:50%; width:4px; height:4px; margin:-2px 0 0 -2px; background:#fff; border-radius:50%; box-shadow:0 0 3px #000; }
+  #spreadCircle { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:60px; height:60px; border:1.5px solid rgba(255,255,255,.85); border-radius:50%; box-shadow:0 0 3px rgba(0,0,0,.7), inset 0 0 3px rgba(0,0,0,.7); transition:width .08s linear, height .08s linear; }
+  #distLabel { position:absolute; left:50%; top:calc(50% + 44px); transform:translateX(-50%); color:rgba(255,255,255,.75); font-size:11px; text-shadow:0 0 3px #000; white-space:nowrap; }
+
+  /* kill feed */
+  #killFeed { position:absolute; top:16px; right:16px; width:300px; text-align:right; }
+  .killMsg { color:#fff; font-size:14px; background:rgba(0,0,0,.45); border-right:3px solid #e53935; padding:4px 8px; margin-bottom:4px; border-radius:3px; text-shadow:0 0 3px #000; animation:feedIn .2s ease-out; }
+  @keyframes feedIn { from { opacity:0; transform:translateX(20px);} to { opacity:1; transform:none;} }
+
+  /* damage flash */
+  #damageFlash { position:fixed; inset:0; background:radial-gradient(ellipse at center, rgba(255,0,0,0) 40%, rgba(200,0,0,.65) 100%); opacity:0; pointer-events:none; transition:opacity .35s; }
+
+  /* ---------- Screens ---------- */
+  .screen { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(5,8,14,.92); color:#fff; text-align:center; z-index:10; }
+  .screen h1 { font-size:52px; letter-spacing:4px; margin-bottom:10px; text-shadow:0 0 20px rgba(229,57,53,.8); }
+  .screen h2 { font-size:30px; letter-spacing:3px; margin-bottom:8px; color:#ffca28; }
+  .screen p { font-size:16px; color:#cfd8dc; max-width:640px; line-height:1.6; margin-bottom:8px; }
+  .screen .btn { margin-top:24px; pointer-events:auto; cursor:pointer; font-size:20px; letter-spacing:2px; padding:14px 46px; background:#b71c1c; color:#fff; border:2px solid #ff8a80; border-radius:6px; }
+  .screen .btn:hover { background:#e53935; }
+  .stats { margin-top:16px; font-size:16px; color:#eceff1; line-height:1.9; }
+  .stats b { color:#ffd54f; }
+  .controlsList { margin-top:18px; font-size:14px; color:#90a4ae; line-height:1.8; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud">
+  <div id="crosshair"><div class="dot"></div></div>
+  <div id="spreadCircle"></div>
+  <div id="distLabel"></div>
+  <div id="healthBox">
+    <div id="healthLabel">HEALTH</div>
+    <div id="healthBarOuter"><div id="healthBarInner"></div></div>
+  </div>
+  <div id="ammoBox">
+    <div id="ammoState"></div>
+    <div id="ammoCount">10 / 10</div>
+    <div id="shells"></div>
+  </div>
+  <div id="levelBox">
+    <div id="levelName"></div>
+    <div id="scoreLine"></div>
+    <div id="baboonsLeft"></div>
+  </div>
+  <div id="killFeed"></div>
+</div>
+<div id="damageFlash"></div>
+
+<div id="startScreen" class="screen">
+  <h1>LONDON BABOON HUNTER</h1>
+  <p>A troop of feral baboons has overrun the streets of London.<br>
+     You are the city's last hunter. Armed with a pump-action shotgun, clear all 5 districts.</p>
+  <div class="controlsList">
+    WASD — Move &nbsp;|&nbsp; MOUSE — Look &nbsp;|&nbsp; SHIFT — Sprint<br>
+    LEFT CLICK — Fire &nbsp;|&nbsp; RIGHT CLICK — Pump &nbsp;|&nbsp; R — Reload &nbsp;|&nbsp; ESC — Pause<br><br>
+    Shotgun: 10 shells, 9 buckshot pellets per shot. You must pump between shots.<br>
+    Effective range 130 m — spread widens with distance (watch the crosshair circle).
+  </div>
+  <button class="btn" id="startBtn">START HUNT</button>
+</div>
+
+<div id="transitionScreen" class="screen hidden">
+  <h2 id="transTitle"></h2>
+  <p id="transDesc"></p>
+  <button class="btn" id="transBtn">BEGIN</button>
+</div>
+
+<div id="pauseScreen" class="screen hidden">
+  <h2>PAUSED</h2>
+  <p>The hunt waits for no one.</p>
+  <button class="btn" id="resumeBtn">RESUME</button>
+  <button class="btn" id="restartBtn" style="background:#37474f;border-color:#90a4ae;">RESTART GAME</button>
+</div>
+
+<div id="gameOverScreen" class="screen hidden">
+  <h1 style="color:#ef5350;">YOU DIED</h1>
+  <p>The baboons have taken London.</p>
+  <div class="stats" id="gameOverStats"></div>
+  <button class="btn" id="retryBtn">TRY AGAIN</button>
+</div>
+
+<div id="victoryScreen" class="screen hidden">
+  <h1 style="color:#ffd54f;">VICTORY</h1>
+  <p>London is safe. The last baboon has fallen at Trafalgar Square.</p>
+  <div class="stats" id="victoryStats"></div>
+  <button class="btn" id="againBtn">PLAY AGAIN</button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+
+/* ============================================================
+   CONSTANTS
+============================================================ */
+const MAG_SIZE = 10;
+const PELLETS = 9;
+const MAX_RANGE = 130;
+const PELLET_DAMAGE = 14;
+const ENEMY_PELLET_DAMAGE = 4;
+const PLAYER_MAX_HP = 100;
+const EYE_HEIGHT = 1.7;
+const STREET_HALF_WIDTH = 13;   // playable clamp on x
+
+const LEVELS = [
+  { name:'LEVEL 1 — HYDE PARK CORNER', desc:'5 baboons have escaped the zoo. They are slow and unarmed. Warm up your trigger finger.', count:5,  hp:100, speed:2.0, armed:false, area:80  },
+  { name:'LEVEL 2 — BAKER STREET',     desc:'8 baboons, faster and angrier. Keep your distance and mind your pump.',                 count:8,  hp:100, speed:3.0, armed:false, area:90  },
+  { name:'LEVEL 3 — CAMDEN CHAOS',     desc:'12 hardened baboons with thicker hides. They close distance quickly.',                  count:12, hp:120, speed:3.5, armed:false, area:100 },
+  { name:'LEVEL 4 — SOHO SIEGE',       desc:'15 alpha baboons. Fast, tough, relentless. Do not get surrounded.',                     count:15, hp:150, speed:4.0, armed:false, area:110 },
+  { name:'LEVEL 5 — TRAFALGAR SHOWDOWN', desc:'10 elite baboons ARMED WITH SHOTGUNS. They shoot back. Use cover. Good luck, hunter.', count:10, hp:200, speed:4.0, armed:true,  area:120 },
+];
+
+/* ============================================================
+   SPREAD FORMULA (impact circle diameter in meters at distance d)
+============================================================ */
+function spreadDiameter(d) {
+  d = Math.max(0.5, Math.min(d, MAX_RANGE));
+  if (d < 50) return 0.45 * Math.pow(0.98, Math.floor((50 - d) / 10));
+  return 0.45 * Math.pow(1.01, Math.floor((d - 50) / 10));
+}
+
+/* ============================================================
+   AUDIO (Web Audio API — all sounds synthesised)
+============================================================ */
+let actx = null;
+function audio() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function noiseBuffer(ctx, seconds) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  return buf;
+}
+function playGunshot(volume = 0.6) {
+  const ctx = audio(), t = ctx.currentTime;
+  // noise blast
+  const src = ctx.createBufferSource(); src.buffer = noiseBuffer(ctx, 0.4);
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(4000, t); lp.frequency.exponentialRampToValueAtTime(120, t + 0.35);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(volume, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+  src.connect(lp).connect(g).connect(ctx.destination); src.start(t);
+  // low thump
+  const osc = ctx.createOscillator(); osc.type = 'sine';
+  osc.frequency.setValueAtTime(140, t); osc.frequency.exponentialRampToValueAtTime(40, t + 0.25);
+  const og = ctx.createGain();
+  og.gain.setValueAtTime(volume * 0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+  osc.connect(og).connect(ctx.destination); osc.start(t); osc.stop(t + 0.3);
+}
+function mechClick(when, freq, vol) {
+  const ctx = audio(), t = ctx.currentTime + when;
+  const src = ctx.createBufferSource(); src.buffer = noiseBuffer(ctx, 0.06);
+  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 2;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+  src.connect(bp).connect(g).connect(ctx.destination); src.start(t);
+}
+function playPump()   { mechClick(0, 900, 0.5); mechClick(0.13, 600, 0.6); }
+function playReload() { mechClick(0, 1400, 0.4); mechClick(0.08, 500, 0.35); }
+function playEmpty()  { mechClick(0, 2000, 0.3); }
+function playScream(dist) {
+  const ctx = audio(), t = ctx.currentTime;
+  const vol = Math.max(0.05, 0.5 * (1 - Math.min(dist, 100) / 110));
+  const osc = ctx.createOscillator(); osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(500 + Math.random() * 300, t);
+  osc.frequency.exponentialRampToValueAtTime(1300 + Math.random() * 400, t + 0.12);
+  osc.frequency.exponentialRampToValueAtTime(300, t + 0.45);
+  const vib = ctx.createOscillator(); vib.frequency.value = 28;
+  const vg = ctx.createGain(); vg.gain.value = 90;
+  vib.connect(vg).connect(osc.frequency);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.04);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+  osc.connect(g).connect(ctx.destination);
+  osc.start(t); osc.stop(t + 0.55); vib.start(t); vib.stop(t + 0.55);
+}
+
+/* ============================================================
+   SCENE / RENDERER
+============================================================ */
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1020);
+scene.fog = new THREE.Fog(0x0b1020, 25, 170);
+
+const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.1, 500);
+camera.position.set(0, EYE_HEIGHT, 0);
+
+const controls = new PointerLockControls(camera, document.body);
+scene.add(camera);
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// lighting
+scene.add(new THREE.AmbientLight(0x445577, 0.55));
+const moon = new THREE.DirectionalLight(0xaabbdd, 0.7);
+moon.position.set(40, 80, -30);
+moon.castShadow = true;
+moon.shadow.mapSize.set(1024, 1024);
+moon.shadow.camera.left = -80; moon.shadow.camera.right = 80;
+moon.shadow.camera.top = 80; moon.shadow.camera.bottom = -80;
+moon.shadow.camera.far = 250;
+scene.add(moon);
+const hemi = new THREE.HemisphereLight(0x223355, 0x0a0a0a, 0.4);
+scene.add(hemi);
+
+/* ============================================================
+   ENVIRONMENT — LONDON STREET
+============================================================ */
+const occluders = [];   // meshes that block pellets
+const ROAD_LEN = 300;
+
+function buildEnvironment() {
+  // asphalt road
+  const road = new THREE.Mesh(
+    new THREE.PlaneGeometry(16, ROAD_LEN),
+    new THREE.MeshStandardMaterial({ color: 0x23262b, roughness: 0.95 })
+  );
+  road.rotation.x = -Math.PI / 2; road.receiveShadow = true;
+  scene.add(road);
+
+  // dashed centre line
+  const dashMat = new THREE.MeshStandardMaterial({ color: 0xd8d8c8, roughness: 0.8 });
+  const dashGeo = new THREE.PlaneGeometry(0.25, 3);
+  for (let z = -ROAD_LEN / 2; z < ROAD_LEN / 2; z += 8) {
+    const dash = new THREE.Mesh(dashGeo, dashMat);
+    dash.rotation.x = -Math.PI / 2;
+    dash.position.set(0, 0.01, z);
+    scene.add(dash);
+  }
+
+  // sidewalks
+  const walkMat = new THREE.MeshStandardMaterial({ color: 0x4a4d52, roughness: 0.9 });
+  for (const side of [-1, 1]) {
+    const walk = new THREE.Mesh(new THREE.BoxGeometry(6, 0.25, ROAD_LEN), walkMat);
+    walk.position.set(side * 11, 0.125, 0);
+    walk.receiveShadow = true;
+    scene.add(walk);
+  }
+
+  // buildings with window texture
+  function windowTexture(baseColor) {
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 512;
+    const g = cv.getContext('2d');
+    g.fillStyle = baseColor; g.fillRect(0, 0, 256, 512);
+    for (let ry = 0; ry < 8; ry++) {
+      for (let rx = 0; rx < 4; rx++) {
+        const lit = Math.random() < 0.35;
+        g.fillStyle = lit ? (Math.random() < 0.5 ? '#ffd980' : '#aaccee') : '#0d1420';
+        g.fillRect(20 + rx * 58, 24 + ry * 60, 36, 42);
+        g.strokeStyle = 'rgba(0,0,0,0.6)'; g.lineWidth = 3;
+        g.strokeRect(20 + rx * 58, 24 + ry * 60, 36, 42);
+      }
+    }
+    const tex = new THREE.CanvasTexture(cv);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+  const brickColors = ['#5d4037', '#6d4c41', '#4e342e', '#455a64', '#544741'];
+  for (const side of [-1, 1]) {
+    let z = -ROAD_LEN / 2;
+    while (z < ROAD_LEN / 2) {
+      const w = 14 + Math.random() * 10;
+      const h = 14 + Math.random() * 18;
+      const d = 10 + Math.random() * 6;
+      const tex = windowTexture(brickColors[(Math.random() * brickColors.length) | 0]);
+      const mats = [
+        new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }),
+        new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }),
+        new THREE.MeshStandardMaterial({ color: 0x333333 }),
+        new THREE.MeshStandardMaterial({ color: 0x333333 }),
+        new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }),
+        new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }),
+      ];
+      const b = new THREE.Mesh(new THREE.BoxGeometry(d, h, w), mats);
+      b.position.set(side * (14 + d / 2), h / 2, z + w / 2);
+      b.castShadow = true; b.receiveShadow = true;
+      scene.add(b); occluders.push(b);
+      z += w + 1.5;
+    }
+  }
+
+  // street lamps with point lights
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.6, roughness: 0.5 });
+  const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffd27a });
+  for (let z = -120; z <= 120; z += 40) {
+    for (const side of [-1, 1]) {
+      const lamp = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 6, 8), poleMat);
+      pole.position.y = 3; pole.castShadow = true;
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 0.08), poleMat);
+      arm.position.set(-side * 0.7, 6, 0);
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), bulbMat);
+      bulb.position.set(-side * 1.35, 5.9, 0);
+      lamp.add(pole, arm, bulb);
+      const pl = new THREE.PointLight(0xffc76a, 18, 26, 1.8);
+      pl.position.copy(bulb.position);
+      lamp.add(pl);
+      lamp.position.set(side * 9.2, 0, z);
+      scene.add(lamp);
+    }
+  }
+
+  // parked cars
+  const carColors = [0x7b1f1f, 0x1f3d7b, 0x24502a, 0x333338, 0x6b5b1e];
+  for (let z = -130; z <= 130; z += 26) {
+    if (Math.random() < 0.3) continue;
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const car = new THREE.Group();
+    const bodyMat = new THREE.MeshStandardMaterial({ color: carColors[(Math.random() * carColors.length) | 0], metalness: 0.5, roughness: 0.4 });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.65, 4.4), bodyMat);
+    body.position.y = 0.62; body.castShadow = true;
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.55, 2.2), new THREE.MeshStandardMaterial({ color: 0x0f1620, metalness: 0.7, roughness: 0.2 }));
+    cabin.position.set(0, 1.2, -0.2); cabin.castShadow = true;
+    car.add(body, cabin);
+    const wheelGeo = new THREE.CylinderGeometry(0.34, 0.34, 0.25, 12);
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+    for (const [wx, wz] of [[-0.9, 1.45], [0.9, 1.45], [-0.9, -1.45], [0.9, -1.45]]) {
+      const w = new THREE.Mesh(wheelGeo, wheelMat);
+      w.rotation.z = Math.PI / 2;
+      w.position.set(wx, 0.34, wz);
+      car.add(w);
+    }
+    car.position.set(side * 6.7, 0, z + (Math.random() * 6 - 3));
+    car.rotation.y = (Math.random() - 0.5) * 0.06;
+    scene.add(car);
+    occluders.push(body, cabin);
+  }
+
+  // benches, bins, bollards
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0x4c3520, roughness: 0.9 });
+  const ironMat = new THREE.MeshStandardMaterial({ color: 0x161616, metalness: 0.6, roughness: 0.5 });
+  const binMat = new THREE.MeshStandardMaterial({ color: 0x203a24, roughness: 0.8 });
+  for (let z = -110; z <= 110; z += 34) {
+    for (const side of [-1, 1]) {
+      // bench
+      const bench = new THREE.Group();
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.08, 0.5), woodMat);
+      seat.position.y = 0.5;
+      const back = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 0.07), woodMat);
+      back.position.set(0, 0.85, -0.24);
+      const legGeo = new THREE.BoxGeometry(0.07, 0.5, 0.45);
+      const l1 = new THREE.Mesh(legGeo, ironMat); l1.position.set(-0.8, 0.25, 0);
+      const l2 = new THREE.Mesh(legGeo, ironMat); l2.position.set(0.8, 0.25, 0);
+      bench.add(seat, back, l1, l2);
+      bench.position.set(side * 12.4, 0.25, z);
+      bench.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+      bench.castShadow = true;
+      scene.add(bench);
+      // bin
+      const bin = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.26, 0.85, 10), binMat);
+      bin.position.set(side * 12.2, 0.68, z + 4);
+      bin.castShadow = true;
+      scene.add(bin); occluders.push(bin);
+    }
+  }
+  // bollards along kerbs
+  const bolMat = new THREE.MeshStandardMaterial({ color: 0x0d0d0d, metalness: 0.5, roughness: 0.5 });
+  for (let z = -140; z <= 140; z += 12) {
+    for (const side of [-1, 1]) {
+      const bol = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.9, 8), bolMat);
+      bol.position.set(side * 8.4, 0.7, z);
+      bol.castShadow = true;
+      scene.add(bol);
+    }
+  }
+}
+buildEnvironment();
+
+/* ============================================================
+   SHOTGUN VIEWMODEL
+============================================================ */
+const gun = new THREE.Group();
+{
+  const metal = new THREE.MeshStandardMaterial({ color: 0x2b2b2e, metalness: 0.8, roughness: 0.35 });
+  const wood  = new THREE.MeshStandardMaterial({ color: 0x5a3a1e, roughness: 0.7 });
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.85, 12), metal);
+  barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.035, -0.45);
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.6, 12), metal);
+  tube.rotation.x = Math.PI / 2; tube.position.set(0, -0.02, -0.38);
+  const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.28), metal);
+  receiver.position.set(0, 0.01, 0.02);
+  const stock = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.11, 0.3), wood);
+  stock.position.set(0, -0.03, 0.3); stock.rotation.x = 0.15;
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.06), wood);
+  grip.position.set(0, -0.09, 0.12); grip.rotation.x = 0.5;
+  gun.add(barrel, tube, receiver, stock, grip);
+  // pump slide (animated)
+  const slide = new THREE.Mesh(new THREE.CylinderGeometry(0.037, 0.037, 0.16, 12), wood);
+  slide.rotation.x = Math.PI / 2; slide.position.set(0, -0.02, -0.42);
+  gun.add(slide);
+  gun.userData.slide = slide;
+  gun.userData.slideHome = -0.42;
+  gun.position.set(0.24, -0.22, -0.55);
+  camera.add(gun);
+}
+// muzzle flash
+const flashMat = new THREE.MeshBasicMaterial({ color: 0xffdd88, transparent: true, opacity: 0, depthWrite: false });
+const muzzleFlash = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), flashMat);
+muzzleFlash.position.set(0, 0.035, -0.92);
+gun.add(muzzleFlash);
+const flashLight = new THREE.PointLight(0xffbb55, 0, 14, 2);
+flashLight.position.set(0, 0, -1.1);
+camera.add(flashLight);
+
+/* ============================================================
+   IMPACT SPARKS (pellet hit markers)
+============================================================ */
+const impacts = [];
+const impactGeo = new THREE.SphereGeometry(0.035, 6, 6);
+const impactMat = new THREE.MeshBasicMaterial({ color: 0xffcc66, transparent: true });
+function spawnImpact(p) {
+  const m = new THREE.Mesh(impactGeo, impactMat.clone());
+  m.position.copy(p);
+  scene.add(m);
+  impacts.push({ mesh: m, life: 0.25 });
+}
+
+/* ============================================================
+   BABOON
+============================================================ */
+const baboons = [];
+const baboonHitMeshes = [];
+
+function makeHealthBar() {
+  const cv = document.createElement('canvas'); cv.width = 128; cv.height = 20;
+  const tex = new THREE.CanvasTexture(cv);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false }));
+  sp.scale.set(1.4, 0.22, 1);
+  sp.userData.cv = cv; sp.userData.tex = tex;
+  return sp;
+}
+function drawHealthBar(sp, frac) {
+  const g = sp.userData.cv.getContext('2d');
+  g.clearRect(0, 0, 128, 20);
+  g.fillStyle = 'rgba(0,0,0,0.65)'; g.fillRect(0, 0, 128, 20);
+  g.fillStyle = frac > 0.5 ? '#43a047' : frac > 0.25 ? '#fb8c00' : '#e53935';
+  g.fillRect(3, 3, 122 * Math.max(0, frac), 14);
+  g.strokeStyle = '#fff'; g.lineWidth = 2; g.strokeRect(1, 1, 126, 18);
+  sp.userData.tex.needsUpdate = true;
+}
+
+function createBaboon(cfg, pos) {
+  const furMat  = new THREE.MeshStandardMaterial({ color: 0x6e5a44, roughness: 0.95 });
+  const faceMat = new THREE.MeshStandardMaterial({ color: 0x8a5a4a, roughness: 0.85 });
+  const g = new THREE.Group();
+
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.32, 0.55, 4, 10), furMat);
+  body.position.y = 0.95; body.castShadow = true;
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 10), furMat);
+  head.position.y = 1.62; head.castShadow = true;
+  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.24), faceMat);
+  snout.position.set(0, 1.56, 0.24);
+  // eyes
+  const eyeGeo = new THREE.SphereGeometry(0.045, 8, 6);
+  const eyeWhite = new THREE.MeshStandardMaterial({ color: 0xffeecc });
+  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x110a05 });
+  const eL = new THREE.Mesh(eyeGeo, eyeWhite); eL.position.set(-0.1, 1.68, 0.19);
+  const eR = new THREE.Mesh(eyeGeo, eyeWhite); eR.position.set(0.1, 1.68, 0.19);
+  const pL = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 6), pupilMat); pL.position.set(-0.1, 1.68, 0.23);
+  const pR = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 6), pupilMat); pR.position.set(0.1, 1.68, 0.23);
+
+  // limbs (pivot groups so they swing)
+  const limbGeo = new THREE.CapsuleGeometry(0.075, 0.42, 3, 8);
+  function limb(x, y) {
+    const pivot = new THREE.Group();
+    const mesh = new THREE.Mesh(limbGeo, furMat);
+    mesh.position.y = -0.28; mesh.castShadow = true;
+    pivot.add(mesh);
+    pivot.position.set(x, y, 0);
+    return pivot;
+  }
+  const armL = limb(-0.38, 1.32), armR = limb(0.38, 1.32);
+  const legL = limb(-0.17, 0.55), legR = limb(0.17, 0.55);
+
+  // tail
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.02, 0.6, 6), furMat);
+  tail.position.set(0, 1.1, -0.42); tail.rotation.x = -1.0;
+
+  g.add(body, head, snout, eL, eR, pL, pR, armL, armR, legL, legR, tail);
+
+  // weapon for armed baboons
+  let gunMesh = null;
+  if (cfg.armed) {
+    gunMesh = new THREE.Group();
+    const metal = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.7, roughness: 0.4 });
+    const b1 = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.7, 8), metal);
+    b1.rotation.x = Math.PI / 2; b1.position.z = 0.2;
+    const b2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.35), new THREE.MeshStandardMaterial({ color: 0x4a3018 }));
+    gunMesh.add(b1, b2);
+    gunMesh.position.set(0.42, 1.15, 0.25);
+    g.add(gunMesh);
+  }
+
+  const hpBar = makeHealthBar();
+  hpBar.position.y = 2.15;
+  g.add(hpBar);
+  drawHealthBar(hpBar, 1);
+
+  g.position.copy(pos);
+  scene.add(g);
+
+  const baboon = {
+    group: g, hp: cfg.hp, maxHp: cfg.hp, speed: cfg.speed, armed: cfg.armed,
+    hpBar, armL, armR, legL, legR, gunMesh,
+    dead: false, deathT: 0, walkPhase: Math.random() * 10,
+    meleeCooldown: 0, shootTimer: 2 + Math.random() * 3, screamTimer: 3 + Math.random() * 8,
+    hitMeshes: [],
+  };
+  for (const m of [body, head, snout]) {
+    m.userData.baboon = baboon;
+    baboon.hitMeshes.push(m);
+    baboonHitMeshes.push(m);
+  }
+  baboons.push(baboon);
+  return baboon;
+}
+
+function killBaboon(b) {
+  b.dead = true; b.deathT = 0;
+  b.hpBar.visible = false;
+  state.kills++; state.levelKills++;
+  state.score += 100;
+  addKillMsg('Baboon down  +100');
+  playScream(b.group.position.distanceTo(camera.position));
+  updateHUD();
+}
+
+function removeBaboon(b) {
+  scene.remove(b.group);
+  for (const m of b.hitMeshes) {
+    const i = baboonHitMeshes.indexOf(m);
+    if (i >= 0) baboonHitMeshes.splice(i, 1);
+  }
+  const i = baboons.indexOf(b);
+  if (i >= 0) baboons.splice(i, 1);
+}
+
+/* ============================================================
+   GAME STATE
+============================================================ */
+const state = {
+  phase: 'menu',           // menu | transition | playing | paused | gameover | victory
+  levelIndex: 0,
+  hp: PLAYER_MAX_HP,
+  shells: MAG_SIZE,
+  mustPump: false,
+  pumpAnim: -1,            // -1 idle, else 0..1 progress
+  reloading: false, reloadTimer: 0,
+  recoil: 0,
+  score: 0, kills: 0, levelKills: 0,
+  shotsFired: 0, pelletsHit: 0,
+  startTime: 0, playTime: 0,
+  invulnFlash: 0,
+};
+const keys = {};
+const velocity = new THREE.Vector3();
+
+/* ============================================================
+   HUD helpers
+============================================================ */
+const $ = id => document.getElementById(id);
+const hud = $('hud');
+function updateHUD() {
+  $('healthBarInner').style.width = Math.max(0, state.hp) / PLAYER_MAX_HP * 100 + '%';
+  $('ammoCount').textContent = state.shells + ' / ' + MAG_SIZE;
+  $('ammoState').textContent = state.reloading ? 'RELOADING…' :
+    state.mustPump ? 'PUMP! (RIGHT CLICK)' :
+    state.shells === 0 ? 'PRESS R TO RELOAD' : '';
+  const shellsDiv = $('shells');
+  if (shellsDiv.children.length !== MAG_SIZE) {
+    shellsDiv.innerHTML = '';
+    for (let i = 0; i < MAG_SIZE; i++) { const d = document.createElement('div'); d.className = 'shell'; shellsDiv.appendChild(d); }
+  }
+  for (let i = 0; i < MAG_SIZE; i++)
+    shellsDiv.children[i].className = i < state.shells ? 'shell' : 'shell empty';
+  const lvl = LEVELS[state.levelIndex];
+  $('levelName').textContent = lvl ? lvl.name : '';
+  $('scoreLine').textContent = 'SCORE: ' + state.score;
+  const alive = baboons.filter(b => !b.dead).length;
+  $('baboonsLeft').textContent = 'BABOONS LEFT: ' + alive;
+}
+function addKillMsg(text) {
+  const feed = $('killFeed');
+  const d = document.createElement('div');
+  d.className = 'killMsg'; d.textContent = text;
+  feed.prepend(d);
+  while (feed.children.length > 6) feed.removeChild(feed.lastChild);
+  setTimeout(() => { d.style.transition = 'opacity .5s'; d.style.opacity = '0'; }, 3200);
+  setTimeout(() => d.remove(), 3800);
+}
+function flashDamage() {
+  const f = $('damageFlash');
+  f.style.transition = 'none'; f.style.opacity = '1';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    f.style.transition = 'opacity .45s'; f.style.opacity = '0';
+  }));
+}
+function statsHTML() {
+  const acc = state.shotsFired > 0 ? Math.round(state.pelletsHit / (state.shotsFired * PELLETS) * 100) : 0;
+  const t = Math.round(state.playTime);
+  return `Score: <b>${state.score}</b><br>` +
+         `Baboons killed: <b>${state.kills}</b><br>` +
+         `Shots fired: <b>${state.shotsFired}</b> &nbsp; Pellet accuracy: <b>${acc}%</b><br>` +
+         `Time: <b>${Math.floor(t / 60)}m ${t % 60}s</b>`;
+}
+
+/* ============================================================
+   LEVEL FLOW
+============================================================ */
+function showScreen(id) {
+  for (const s of ['startScreen', 'transitionScreen', 'pauseScreen', 'gameOverScreen', 'victoryScreen'])
+    $(s).classList.toggle('hidden', s !== id);
+  if (id === null) for (const s of ['startScreen', 'transitionScreen', 'pauseScreen', 'gameOverScreen', 'victoryScreen'])
+    $(s).classList.add('hidden');
+}
+function hideScreens() { showScreen('__none__'); }
+
+function clearBaboons() { while (baboons.length) removeBaboon(baboons[0]); }
+
+function startLevel(idx) {
+  state.levelIndex = idx;
+  const lvl = LEVELS[idx];
+  clearBaboons();
+  state.hp = PLAYER_MAX_HP;
+  state.shells = MAG_SIZE;
+  state.mustPump = false; state.reloading = false;
+  state.levelKills = 0;
+  camera.position.set(0, EYE_HEIGHT, 0);
+  velocity.set(0, 0, 0);
+  // spawn baboons within the level area
+  const half = lvl.area / 2;
+  for (let i = 0; i < lvl.count; i++) {
+    let x, z, tries = 0;
+    do {
+      x = (Math.random() * 2 - 1) * STREET_HALF_WIDTH * 0.9;
+      z = (Math.random() * 2 - 1) * half;
+      tries++;
+    } while (Math.hypot(x, z) < 22 && tries < 40);
+    createBaboon(lvl, new THREE.Vector3(x, 0, z));
+  }
+  state.phase = 'playing';
+  hideScreens();
+  hud.style.display = 'block';
+  updateHUD();
+  controls.lock();
+}
+
+function showTransition(idx) {
+  state.phase = 'transition';
+  controls.unlock();
+  hud.style.display = 'none';
+  const lvl = LEVELS[idx];
+  $('transTitle').textContent = lvl.name;
+  $('transDesc').innerHTML = lvl.desc + '<br><br>' +
+    `Baboons: <b>${lvl.count}</b> — HP: <b>${lvl.hp}</b> — Speed: <b>${lvl.speed}</b>` +
+    (lvl.armed ? ' — <b style="color:#ef5350">ARMED WITH SHOTGUNS</b>' : '');
+  showScreen('transitionScreen');
+  $('transBtn').onclick = () => startLevel(idx);
+}
+
+function levelCleared() {
+  state.score += 250; // level bonus
+  if (state.levelIndex + 1 >= LEVELS.length) {
+    state.phase = 'victory';
+    state.playTime = (performance.now() - state.startTime) / 1000;
+    controls.unlock();
+    hud.style.display = 'none';
+    $('victoryStats').innerHTML = statsHTML();
+    showScreen('victoryScreen');
+  } else {
+    showTransition(state.levelIndex + 1);
+  }
+}
+
+function gameOver() {
+  state.phase = 'gameover';
+  state.playTime = (performance.now() - state.startTime) / 1000;
+  controls.unlock();
+  hud.style.display = 'none';
+  $('gameOverStats').innerHTML = statsHTML();
+  showScreen('gameOverScreen');
+}
+
+function resetGame() {
+  state.score = 0; state.kills = 0;
+  state.shotsFired = 0; state.pelletsHit = 0;
+  state.startTime = performance.now();
+  clearBaboons();
+  showTransition(0);
+}
+
+/* ============================================================
+   SHOOTING
+============================================================ */
+const raycaster = new THREE.Raycaster();
+raycaster.far = MAX_RANGE;
+const _dir = new THREE.Vector3(), _right = new THREE.Vector3(), _up = new THREE.Vector3();
+
+function aimDistance() {
+  // distance to whatever is in the crosshair (for spread + HUD)
+  camera.getWorldDirection(_dir);
+  raycaster.set(camera.position, _dir);
+  raycaster.far = MAX_RANGE;
+  const hits = raycaster.intersectObjects([...occluders, ...baboonHitMeshes], false);
+  return hits.length ? Math.min(hits[0].distance, MAX_RANGE) : 50;
+}
+
+function fire() {
+  if (state.phase !== 'playing') return;
+  if (state.reloading) {
+    if (state.shells > 0) { state.reloading = false; } else return; // interrupt reload if we have a shell
+  }
+  if (state.mustPump) { playEmpty(); updateHUD(); return; }
+  if (state.shells <= 0) { playEmpty(); updateHUD(); return; }
+
+  state.shells--;
+  state.mustPump = true;
+  state.shotsFired++;
+  state.recoil = 1;
+  playGunshot();
+
+  // muzzle flash
+  flashMat.opacity = 1;
+  flashLight.intensity = 25;
+  muzzleFlash.scale.setScalar(0.8 + Math.random() * 0.7);
+  muzzleFlash.rotation.z = Math.random() * Math.PI;
+
+  // ---- pellet spread cone based on impact-circle formula ----
+  const dRef = aimDistance();
+  const radius = spreadDiameter(dRef) / 2;
+  camera.getWorldDirection(_dir);
+  _right.crossVectors(_dir, camera.up).normalize();
+  _up.crossVectors(_right, _dir).normalize();
+
+  const targets = [...occluders, ...baboonHitMeshes];
+  for (let i = 0; i < PELLETS; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const r = radius * Math.sqrt(Math.random());
+    // point on the impact circle at distance dRef → pellet direction
+    const target = camera.position.clone()
+      .addScaledVector(_dir, dRef)
+      .addScaledVector(_right, Math.cos(ang) * r)
+      .addScaledVector(_up, Math.sin(ang) * r);
+    const pdir = target.sub(camera.position).normalize();
+    raycaster.set(camera.position, pdir);
+    raycaster.far = MAX_RANGE;
+    const hits = raycaster.intersectObjects(targets, false);
+    if (hits.length) {
+      const h = hits[0];
+      spawnImpact(h.point);
+      const b = h.object.userData.baboon;
+      if (b && !b.dead) {
+        state.pelletsHit++;
+        b.hp -= PELLET_DAMAGE;
+        drawHealthBar(b.hpBar, b.hp / b.maxHp);
+        if (b.hp <= 0) killBaboon(b);
+      }
+    }
+  }
+  updateHUD();
+}
+
+function pump() {
+  if (state.phase !== 'playing') return;
+  if (!state.mustPump || state.pumpAnim >= 0) return;
+  state.pumpAnim = 0;
+  playPump();
+}
+
+function startReload() {
+  if (state.phase !== 'playing') return;
+  if (state.reloading || state.shells >= MAG_SIZE) return;
+  state.reloading = true;
+  state.reloadTimer = 0;
+  updateHUD();
+}
+
+/* ============================================================
+   ENEMY SHOTGUN (level 5) — same spread formula, statistical hits
+============================================================ */
+function baboonShoot(b) {
+  const toPlayer = camera.position.clone().sub(b.group.position.clone().setY(1.4));
+  const d = toPlayer.length();
+  if (d > MAX_RANGE) return;
+  // line of sight check
+  raycaster.set(b.group.position.clone().setY(1.4), toPlayer.normalize());
+  raycaster.far = d;
+  if (raycaster.intersectObjects(occluders, false).length) return;
+
+  playGunshot(Math.max(0.08, 0.5 * (1 - d / 140)));
+  // muzzle flash on baboon gun
+  if (b.gunMesh) {
+    const fl = new THREE.PointLight(0xffbb55, 12, 10, 2);
+    fl.position.copy(b.group.position).y = 1.3;
+    scene.add(fl);
+    setTimeout(() => scene.remove(fl), 60);
+  }
+  // simulate 9 pellets: random points in the impact circle at player's distance,
+  // player torso ≈ 0.45m radius disc
+  const diam = spreadDiameter(d);
+  const aimError = d * 0.006; // slight aim error so they're beatable
+  let hitCount = 0;
+  const offX = (Math.random() * 2 - 1) * aimError;
+  const offY = (Math.random() * 2 - 1) * aimError;
+  for (let i = 0; i < PELLETS; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const r = (diam / 2) * Math.sqrt(Math.random());
+    const px = offX + Math.cos(ang) * r;
+    const py = offY + Math.sin(ang) * r;
+    if (Math.hypot(px, py) < 0.45) hitCount++;
+  }
+  if (hitCount > 0) damagePlayer(hitCount * ENEMY_PELLET_DAMAGE);
+}
+
+function damagePlayer(amount) {
+  if (state.phase !== 'playing') return;
+  state.hp -= amount;
+  flashDamage();
+  updateHUD();
+  if (state.hp <= 0) { state.hp = 0; gameOver(); }
+}
+
+/* ============================================================
+   INPUT
+============================================================ */
+document.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'KeyR') startReload();
+});
+document.addEventListener('keyup', e => { keys[e.code] = false; });
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('mousedown', e => {
+  if (state.phase !== 'playing' || !controls.isLocked) return;
+  if (e.button === 0) fire();
+  else if (e.button === 2) pump();
+});
+
+controls.addEventListener('unlock', () => {
+  if (state.phase === 'playing') {
+    state.phase = 'paused';
+    hud.style.display = 'none';
+    showScreen('pauseScreen');
+  }
+});
+controls.addEventListener('lock', () => {
+  if (state.phase === 'paused') {
+    state.phase = 'playing';
+    hideScreens();
+    hud.style.display = 'block';
+  }
+});
+
+$('startBtn').onclick = () => { audio(); state.startTime = performance.now(); resetGame(); };
+$('resumeBtn').onclick = () => { controls.lock(); };
+$('restartBtn').onclick = () => { resetGame(); };
+$('retryBtn').onclick = () => { resetGame(); };
+$('againBtn').onclick = () => { resetGame(); };
+
+/* ============================================================
+   MAIN LOOP
+============================================================ */
+const clock = new THREE.Clock();
+let aimHudTimer = 0;
+
+function updatePlayer(dt) {
+  const sprint = keys['ShiftLeft'] || keys['ShiftRight'];
+  const speed = sprint ? 9.5 : 5.5;
+  const fwd = (keys['KeyW'] ? 1 : 0) - (keys['KeyS'] ? 1 : 0);
+  const strafe = (keys['KeyD'] ? 1 : 0) - (keys['KeyA'] ? 1 : 0);
+
+  velocity.x -= velocity.x * 10 * dt;
+  velocity.z -= velocity.z * 10 * dt;
+  if (fwd || strafe) {
+    const len = Math.hypot(fwd, strafe) || 1;
+    velocity.z += (fwd / len) * speed * 10 * dt;
+    velocity.x += (strafe / len) * speed * 10 * dt;
+  }
+  controls.moveForward(velocity.z * dt);
+  controls.moveRight(velocity.x * dt);
+
+  // clamp inside street
+  const halfLen = Math.min(LEVELS[state.levelIndex].area / 2 + 15, ROAD_LEN / 2 - 5);
+  camera.position.x = THREE.MathUtils.clamp(camera.position.x, -STREET_HALF_WIDTH, STREET_HALF_WIDTH);
+  camera.position.z = THREE.MathUtils.clamp(camera.position.z, -halfLen, halfLen);
+  camera.position.y = EYE_HEIGHT + (fwd || strafe ? Math.sin(performance.now() / (sprint ? 90 : 140)) * 0.035 : 0);
+}
+
+function updateGun(dt) {
+  // recoil
+  if (state.recoil > 0) {
+    state.recoil = Math.max(0, state.recoil - dt * 6);
+  }
+  gun.position.z = -0.55 + state.recoil * 0.12;
+  gun.rotation.x = state.recoil * 0.14;
+
+  // pump animation
+  const slide = gun.userData.slide;
+  if (state.pumpAnim >= 0) {
+    state.pumpAnim += dt * 3.2;
+    const t = state.pumpAnim;
+    const back = t < 0.5 ? t / 0.5 : (1 - t) / 0.5; // 0→1→0
+    slide.position.z = gun.userData.slideHome + Math.max(0, Math.min(1, back)) * 0.12;
+    if (t >= 1) {
+      state.pumpAnim = -1;
+      slide.position.z = gun.userData.slideHome;
+      state.mustPump = false;
+      updateHUD();
+    }
+  }
+
+  // reload
+  if (state.reloading) {
+    state.reloadTimer += dt;
+    gun.rotation.z = Math.sin(state.reloadTimer * 12) * 0.05;
+    gun.position.y = -0.22 - 0.06;
+    if (state.reloadTimer >= 0.45) {
+      state.reloadTimer = 0;
+      state.shells++;
+      playReload();
+      if (state.shells >= MAG_SIZE) state.reloading = false;
+      updateHUD();
+    }
+  } else {
+    gun.rotation.z = 0;
+    gun.position.y = -0.22;
+  }
+
+  // muzzle flash decay
+  if (flashMat.opacity > 0) {
+    flashMat.opacity = Math.max(0, flashMat.opacity - dt * 14);
+    flashLight.intensity = Math.max(0, flashLight.intensity - dt * 350);
+  }
+}
+
+function updateBaboons(dt) {
+  const playerPos = camera.position;
+  let anyAlive = false;
+  for (let i = baboons.length - 1; i >= 0; i--) {
+    const b = baboons[i];
+    if (b.dead) {
+      // death animation: fall over then sink & remove
+      b.deathT += dt;
+      const t = Math.min(1, b.deathT / 0.6);
+      b.group.rotation.z = t * Math.PI / 2;
+      b.group.position.y = -0.15 * t;
+      if (b.deathT > 4) {
+        b.group.position.y -= dt * 0.5;
+        if (b.deathT > 5.5) removeBaboon(b);
+      }
+      continue;
+    }
+    anyAlive = true;
+
+    const toPlayer = playerPos.clone().sub(b.group.position); toPlayer.y = 0;
+    const dist = toPlayer.length();
+    toPlayer.normalize();
+
+    // face the player
+    b.group.rotation.y = Math.atan2(toPlayer.x, toPlayer.z);
+
+    // movement: armed baboons keep ~22m standoff, others charge to melee
+    const stopDist = b.armed ? 22 : 1.6;
+    if (dist > stopDist) {
+      b.group.position.addScaledVector(toPlayer, b.speed * dt);
+      b.group.position.x = THREE.MathUtils.clamp(b.group.position.x, -STREET_HALF_WIDTH + 0.5, STREET_HALF_WIDTH - 0.5);
+      // walk animation
+      b.walkPhase += dt * b.speed * 3.2;
+      const s = Math.sin(b.walkPhase);
+      b.armL.rotation.x = s * 0.7;  b.armR.rotation.x = -s * 0.7;
+      b.legL.rotation.x = -s * 0.7; b.legR.rotation.x = s * 0.7;
+    } else {
+      b.armL.rotation.x *= 0.9; b.armR.rotation.x *= 0.9;
+      b.legL.rotation.x *= 0.9; b.legR.rotation.x *= 0.9;
+    }
+
+    // simple separation so they don't stack
+    for (const o of baboons) {
+      if (o === b || o.dead) continue;
+      const dx = b.group.position.x - o.group.position.x;
+      const dz = b.group.position.z - o.group.position.z;
+      const dd = Math.hypot(dx, dz);
+      if (dd > 0.001 && dd < 1.1) {
+        b.group.position.x += (dx / dd) * (1.1 - dd) * 0.5;
+        b.group.position.z += (dz / dd) * (1.1 - dd) * 0.5;
+      }
+    }
+
+    // melee attack
+    b.meleeCooldown -= dt;
+    if (dist < 2.2 && b.meleeCooldown <= 0) {
+      b.meleeCooldown = 1.0;
+      // lunge arms
+      b.armL.rotation.x = -1.6; b.armR.rotation.x = -1.6;
+      damagePlayer(10 + state.levelIndex * 2);
+      playScream(dist);
+    }
+
+    // armed baboons shoot
+    if (b.armed) {
+      b.shootTimer -= dt;
+      if (b.shootTimer <= 0 && dist < 60) {
+        b.shootTimer = 2.2 + Math.random() * 1.6; // fire + pump cycle
+        baboonShoot(b);
+      }
+    }
+
+    // ambient screams
+    b.screamTimer -= dt;
+    if (b.screamTimer <= 0) {
+      b.screamTimer = 6 + Math.random() * 12;
+      playScream(dist);
+    }
+  }
+
+  // level cleared? (all dead — corpses may still be animating)
+  if (!anyAlive && state.phase === 'playing' && state.levelKills >= LEVELS[state.levelIndex].count) {
+    levelCleared();
+  }
+}
+
+function updateImpacts(dt) {
+  for (let i = impacts.length - 1; i >= 0; i--) {
+    const im = impacts[i];
+    im.life -= dt;
+    im.mesh.material.opacity = Math.max(0, im.life / 0.25);
+    if (im.life <= 0) { scene.remove(im.mesh); impacts.splice(i, 1); }
+  }
+}
+
+function updateAimHUD(dt) {
+  aimHudTimer -= dt;
+  if (aimHudTimer > 0) return;
+  aimHudTimer = 0.1;
+  const d = aimDistance();
+  const diam = spreadDiameter(d);
+  // project spread radius to screen pixels
+  const fovRad = camera.fov * Math.PI / 180;
+  const px = (diam / 2 / d) * (innerHeight / 2) / Math.tan(fovRad / 2) * 2;
+  const size = Math.max(14, Math.min(innerHeight * 0.8, px));
+  const c = $('spreadCircle');
+  c.style.width = size + 'px';
+  c.style.height = size + 'px';
+  $('distLabel').textContent = Math.round(d) + ' m — Ø ' + (diam * 100).toFixed(0) + ' cm';
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(0.05, clock.getDelta());
+  if (state.phase === 'playing') {
+    updatePlayer(dt);
+    updateGun(dt);
+    updateBaboons(dt);
+    updateImpacts(dt);
+    updateAimHUD(dt);
+    // health bars face the camera automatically (sprites)
+  }
+  renderer.render(scene, camera);
+}
+animate();
+updateHUD();
+</script>
+</body>
+</html>
