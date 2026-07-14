@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>LONDON BABOON HUNT</title>
 <style>
-  html,body{margin:0;padding:0;overflow:hidden;background:#000;font-family:\'Segoe UI\',Arial,sans-serif;user-select:none;}
+  html,body{margin:0;padding:0;overflow:hidden;background:#000;font-family:'Segoe UI',Arial,sans-serif;user-select:none;}
   #game-canvas{display:block;}
 
   /* ---------- HUD ---------- */
@@ -93,8 +93,8 @@
 <div id="start-screen" class="screen">
   <h1>LONDON BABOON HUNT</h1>
   <h3>A PUMP-ACTION SHOTGUN STORY IN FIVE ACTS</h3>
-  <div class="sub">The baboons have taken the streets of London. You are the city\'s last hunter.
-    Clear all five districts. On the final level they\'ve looted an armoury &mdash; they shoot back.</div>
+  <div class="sub">The baboons have taken the streets of London. You are the city's last hunter.
+    Clear all five districts. On the final level they've looted an armoury &mdash; they shoot back.</div>
   <div class="controls-grid">
     <b>W A S D</b><span>Move</span>
     <b>MOUSE</b><span>Look</span>
@@ -138,8 +138,8 @@
 </script>
 
 <script type="module">
-import * as THREE from \'three\';
-import { PointerLockControls } from \'three/addons/controls/PointerLockControls.js\';
+import * as THREE from 'three';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
 /* ============================================================
    CONSTANTS & LEVEL DATA
@@ -154,11 +154,11 @@ const STREET_HALF_W = 9.5;     // playable half-width
 const STREET_HALF_L = 138;     // playable half-length
 
 const LEVELS = [
-  { count: 5,  hp: 100, speed: 2.0, armed: false, area: 80,  name: \'LEVEL 1 - BAKER STREET AMBUSH\' },
-  { count: 8,  hp: 100, speed: 3.0, armed: false, area: 90,  name: \'LEVEL 2 - CAMDEN CHAOS\'        },
-  { count: 12, hp: 120, speed: 3.5, armed: false, area: 100, name: \'LEVEL 3 - SOHO STAMPEDE\'       },
-  { count: 15, hp: 150, speed: 4.0, armed: false, area: 110, name: \'LEVEL 4 - WHITEHALL RIOT\'      },
-  { count: 10, hp: 200, speed: 4.0, armed: true,  area: 120, name: \'LEVEL 5 - TOWER BRIDGE SIEGE\'  },
+  { count: 5,  hp: 100, speed: 2.0, armed: false, area: 80,  name: 'LEVEL 1 - BAKER STREET AMBUSH' },
+  { count: 8,  hp: 100, speed: 3.0, armed: false, area: 90,  name: 'LEVEL 2 - CAMDEN CHAOS'        },
+  { count: 12, hp: 120, speed: 3.5, armed: false, area: 100, name: 'LEVEL 3 - SOHO STAMPEDE'       },
+  { count: 15, hp: 150, speed: 4.0, armed: false, area: 110, name: 'LEVEL 4 - WHITEHALL RIOT'      },
+  { count: 10, hp: 200, speed: 4.0, armed: true,  area: 120, name: 'LEVEL 5 - TOWER BRIDGE SIEGE'  },
 ];
 
 /* Spread / impact-circle formula (diameter in metres at distance d metres).
@@ -176,7 +176,7 @@ function spreadDiameter(d) {
 let actx = null;
 function initAudio() {
   if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
-  if (actx.state === \'suspended\') actx.resume();
+  if (actx.state === 'suspended') actx.resume();
 }
 function noiseBuffer(dur) {
   const len = Math.max(1, Math.floor(actx.sampleRate * dur));
@@ -190,13 +190,13 @@ function playGunshot(vol = 1) {
   const t = actx.currentTime;
   // main blast: filtered noise
   const src = actx.createBufferSource(); src.buffer = noiseBuffer(0.4);
-  const lp = actx.createBiquadFilter(); lp.type = \'lowpass\';
+  const lp = actx.createBiquadFilter(); lp.type = 'lowpass';
   lp.frequency.setValueAtTime(2600, t); lp.frequency.exponentialRampToValueAtTime(180, t + 0.35);
   const g = actx.createGain();
   g.gain.setValueAtTime(0.9 * vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
   src.connect(lp).connect(g).connect(actx.destination); src.start(t);
   // low thump
-  const osc = actx.createOscillator(); osc.type = \'sine\';
+  const osc = actx.createOscillator(); osc.type = 'sine';
   osc.frequency.setValueAtTime(110, t); osc.frequency.exponentialRampToValueAtTime(38, t + 0.18);
   const g2 = actx.createGain();
   g2.gain.setValueAtTime(0.8 * vol, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
@@ -204,7 +204,7 @@ function playGunshot(vol = 1) {
 }
 function mechClick(when, freq, vol) {
   const src = actx.createBufferSource(); src.buffer = noiseBuffer(0.05);
-  const bp = actx.createBiquadFilter(); bp.type = \'bandpass\'; bp.frequency.value = freq; bp.Q.value = 2.5;
+  const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 2.5;
   const g = actx.createGain();
   g.gain.setValueAtTime(vol, when); g.gain.exponentialRampToValueAtTime(0.001, when + 0.06);
   src.connect(bp).connect(g).connect(actx.destination); src.start(when);
@@ -227,7 +227,7 @@ function playEmptyClick() {
 function playScream(vol = 0.5) {
   if (!actx) return;
   const t = actx.currentTime;
-  const osc = actx.createOscillator(); osc.type = \'sawtooth\';
+  const osc = actx.createOscillator(); osc.type = 'sawtooth';
   const f0 = 380 + Math.random() * 180;
   osc.frequency.setValueAtTime(f0, t);
   osc.frequency.exponentialRampToValueAtTime(f0 * 2.4, t + 0.09);
@@ -244,7 +244,7 @@ function playScream(vol = 0.5) {
 function playHurt() {
   if (!actx) return;
   const t = actx.currentTime;
-  const osc = actx.createOscillator(); osc.type = \'triangle\';
+  const osc = actx.createOscillator(); osc.type = 'triangle';
   osc.frequency.setValueAtTime(180, t); osc.frequency.exponentialRampToValueAtTime(60, t + 0.2);
   const g = actx.createGain();
   g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
@@ -264,10 +264,10 @@ camera.position.set(0, 1.7, 0);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.domElement.id = \'game-canvas\';
+renderer.domElement.id = 'game-canvas';
 document.body.appendChild(renderer.domElement);
 
-addEventListener(\'resize\', () => {
+addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
@@ -288,13 +288,13 @@ moon.position.set(-40, 90, -60); scene.add(moon);
 const solidMeshes = [];   // occluders / raycast targets for pellet impacts
 
 function buildingTexture(baseColor) {
-  const c = document.createElement(\'canvas\'); c.width = 256; c.height = 512;
-  const g = c.getContext(\'2d\');
+  const c = document.createElement('canvas'); c.width = 256; c.height = 512;
+  const g = c.getContext('2d');
   g.fillStyle = baseColor; g.fillRect(0, 0, 256, 512);
   // brick noise
   g.globalAlpha = 0.08;
   for (let i = 0; i < 300; i++) {
-    g.fillStyle = Math.random() > .5 ? \'#000\' : \'#fff\';
+    g.fillStyle = Math.random() > .5 ? '#000' : '#fff';
     g.fillRect(Math.random() * 256, Math.random() * 512, 10, 4);
   }
   g.globalAlpha = 1;
@@ -302,11 +302,11 @@ function buildingTexture(baseColor) {
   const cols = 4, rows = 8;
   for (let r = 0; r < rows; r++) for (let col = 0; col < cols; col++) {
     const x = 18 + col * 58, y = 22 + r * 60;
-    g.fillStyle = \'#0a0c10\'; g.fillRect(x - 3, y - 3, 42, 46);
+    g.fillStyle = '#0a0c10'; g.fillRect(x - 3, y - 3, 42, 46);
     const lit = Math.random() < 0.35;
-    g.fillStyle = lit ? (Math.random() < .5 ? \'#ffd98a\' : \'#ffedbe\') : \'#141a26\';
+    g.fillStyle = lit ? (Math.random() < .5 ? '#ffd98a' : '#ffedbe') : '#141a26';
     g.fillRect(x, y, 36, 40);
-    g.strokeStyle = \'rgba(0,0,0,.7)\'; g.lineWidth = 2;
+    g.strokeStyle = 'rgba(0,0,0,.7)'; g.lineWidth = 2;
     g.strokeRect(x, y, 36, 40);
     g.beginPath(); g.moveTo(x + 18, y); g.lineTo(x + 18, y + 40);
     g.moveTo(x, y + 20); g.lineTo(x + 36, y + 20); g.stroke();
@@ -347,7 +347,7 @@ function buildEnvironment() {
   }
 
   // Buildings both sides
-  const palette = [\'#5a4436\', \'#6b5140\', \'#4e4a52\', \'#5d5346\', \'#6e5a3f\', \'#54424e\'];
+  const palette = ['#5a4436', '#6b5140', '#4e4a52', '#5d5346', '#6e5a3f', '#54424e'];
   for (const s of [-1, 1]) {
     let z = -150;
     while (z < 150) {
@@ -474,12 +474,12 @@ const gun = new THREE.Group();
 
   // Muzzle flash
   const flashTex = (() => {
-    const c = document.createElement(\'canvas\'); c.width = c.height = 64;
-    const g = c.getContext(\'2d\');
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d');
     const grad = g.createRadialGradient(32, 32, 2, 32, 32, 32);
-    grad.addColorStop(0, \'rgba(255,255,220,1)\');
-    grad.addColorStop(0.35, \'rgba(255,190,70,0.9)\');
-    grad.addColorStop(1, \'rgba(255,120,0,0)\');
+    grad.addColorStop(0, 'rgba(255,255,220,1)');
+    grad.addColorStop(0.35, 'rgba(255,190,70,0.9)');
+    grad.addColorStop(1, 'rgba(255,120,0,0)');
     g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
     return new THREE.CanvasTexture(c);
   })();
@@ -568,7 +568,7 @@ class Baboon {
     }
 
     // Health bar sprite
-    this.hbCanvas = document.createElement(\'canvas\');
+    this.hbCanvas = document.createElement('canvas');
     this.hbCanvas.width = 64; this.hbCanvas.height = 10;
     this.hbTex = new THREE.CanvasTexture(this.hbCanvas);
     this.hbSprite = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -584,11 +584,11 @@ class Baboon {
   }
 
   drawHealthBar() {
-    const g = this.hbCanvas.getContext(\'2d\');
+    const g = this.hbCanvas.getContext('2d');
     g.clearRect(0, 0, 64, 10);
-    g.fillStyle = \'rgba(0,0,0,0.75)\'; g.fillRect(0, 0, 64, 10);
+    g.fillStyle = 'rgba(0,0,0,0.75)'; g.fillRect(0, 0, 64, 10);
     const f = Math.max(0, this.hp / this.maxHp);
-    g.fillStyle = f > 0.5 ? \'#22c55e\' : f > 0.25 ? \'#f59e0b\' : \'#ef4444\';
+    g.fillStyle = f > 0.5 ? '#22c55e' : f > 0.25 ? '#f59e0b' : '#ef4444';
     g.fillRect(1, 1, 62 * f, 8);
     this.hbTex.needsUpdate = true;
   }
@@ -607,7 +607,7 @@ class Baboon {
     playScream(0.55);
     player.kills++;
     player.score += 100 * currentLevel;
-    addKillFeed(\'Baboon blasted &nbsp;+\' + (100 * currentLevel));
+    addKillFeed('Baboon blasted &nbsp;+' + (100 * currentLevel));
     updateHUD();
   }
 
@@ -691,7 +691,7 @@ class Baboon {
 
   shootAtPlayer(dist) {
     if (dist > MAX_RANGE) return;   // 130 m is end of range
-    // Same spread mechanics as the player\'s shotgun
+    // Same spread mechanics as the player's shotgun
     const D = spreadDiameter(dist);
     const R = D / 2;
     // Aim error grows with distance and while the player sprints
@@ -720,7 +720,7 @@ class Baboon {
 /* ============================================================
    GAME STATE
 ============================================================ */
-let gameState = \'menu\';   // menu | playing | transition | paused | gameover | victory
+let gameState = 'menu';   // menu | playing | transition | paused | gameover | victory
 let currentLevel = 0;
 let baboons = [];
 let ignoreNextUnlock = false;
@@ -754,10 +754,10 @@ function spawnImpact(point) {
 }
 
 function tryFire() {
-  if (gameState !== \'playing\') return;
+  if (gameState !== 'playing') return;
   if (player.reloading > 0 || player.pumping > 0) return;
-  if (player.needPump) { showHint(\'PUMP!  (RIGHT-CLICK)\'); playEmptyClick(); return; }
-  if (player.shells <= 0) { showHint(\'PRESS R TO RELOAD\'); playEmptyClick(); return; }
+  if (player.needPump) { showHint('PUMP!  (RIGHT-CLICK)'); playEmptyClick(); return; }
+  if (player.shells <= 0) { showHint('PRESS R TO RELOAD'); playEmptyClick(); return; }
 
   player.shells--;
   player.needPump = true;
@@ -834,28 +834,28 @@ function tryFire() {
 }
 
 function tryPump() {
-  if (gameState !== \'playing\') return;
+  if (gameState !== 'playing') return;
   if (!player.needPump || player.pumping > 0 || player.reloading > 0) return;
   player.pumping = 0.45;
   playPump();
 }
 
 function tryReload() {
-  if (gameState !== \'playing\') return;
+  if (gameState !== 'playing') return;
   if (player.reloading > 0 || player.pumping > 0 || player.shells >= MAG_SIZE) return;
   player.reloading = 1.8;
   playReload();
-  showHint(\'RELOADING...\');
+  showHint('RELOADING...');
 }
 
 /* ============================================================
    PLAYER DAMAGE / HUD
 ============================================================ */
-const dmgFlashEl = document.getElementById(\'damage-flash\');
+const dmgFlashEl = document.getElementById('damage-flash');
 let dmgFlash = 0;
 
 function damagePlayer(dmg) {
-  if (gameState !== \'playing\') return;
+  if (gameState !== 'playing') return;
   player.hp -= dmg;
   dmgFlash = 1;
   playHurt();
@@ -863,60 +863,60 @@ function damagePlayer(dmg) {
   if (player.hp <= 0) { player.hp = 0; gameOver(); }
 }
 
-const healthFill = document.getElementById(\'health-fill\');
-const ammoCount = document.getElementById(\'ammo-count\');
-const shellsEl = document.getElementById(\'shells\');
-const levelNameEl = document.getElementById(\'level-name\');
-const scoreEl = document.getElementById(\'score\');
-const leftEl = document.getElementById(\'baboons-left\');
-const hintEl = document.getElementById(\'hint\');
-const spreadEl = document.getElementById(\'spread-circle\');
-const killfeedEl = document.getElementById(\'killfeed\');
+const healthFill = document.getElementById('health-fill');
+const ammoCount = document.getElementById('ammo-count');
+const shellsEl = document.getElementById('shells');
+const levelNameEl = document.getElementById('level-name');
+const scoreEl = document.getElementById('score');
+const leftEl = document.getElementById('baboons-left');
+const hintEl = document.getElementById('hint');
+const spreadEl = document.getElementById('spread-circle');
+const killfeedEl = document.getElementById('killfeed');
 
 // Build shell icons + crosshair once
 for (let i = 0; i < MAG_SIZE; i++) {
-  const s = document.createElement(\'div\'); s.className = \'shell\'; shellsEl.appendChild(s);
+  const s = document.createElement('div'); s.className = 'shell'; shellsEl.appendChild(s);
 }
 {
-  const ch = document.getElementById(\'crosshair\');
+  const ch = document.getElementById('crosshair');
   const mk = (w, h, x, y) => {
-    const d = document.createElement(\'div\'); d.className = \'ch-line\';
-    d.style.width = w + \'px\'; d.style.height = h + \'px\';
-    d.style.left = x + \'px\'; d.style.top = y + \'px\';
+    const d = document.createElement('div'); d.className = 'ch-line';
+    d.style.width = w + 'px'; d.style.height = h + 'px';
+    d.style.left = x + 'px'; d.style.top = y + 'px';
     ch.appendChild(d);
   };
   mk(2, 8, -1, -14); mk(2, 8, -1, 6); mk(8, 2, -14, -1); mk(8, 2, 6, -1);
-  const dot = document.createElement(\'div\'); dot.className = \'ch-line\';
-  dot.style.width = \'2px\'; dot.style.height = \'2px\';
-  dot.style.left = \'-1px\'; dot.style.top = \'-1px\'; dot.style.borderRadius = \'50%\';
+  const dot = document.createElement('div'); dot.className = 'ch-line';
+  dot.style.width = '2px'; dot.style.height = '2px';
+  dot.style.left = '-1px'; dot.style.top = '-1px'; dot.style.borderRadius = '50%';
   ch.appendChild(dot);
 }
 
 function updateHUD() {
-  healthFill.style.width = (player.hp / player.maxHp * 100) + \'%\';
-  ammoCount.textContent = player.shells + \' / \' + MAG_SIZE;
+  healthFill.style.width = (player.hp / player.maxHp * 100) + '%';
+  ammoCount.textContent = player.shells + ' / ' + MAG_SIZE;
   const shellDivs = shellsEl.children;
   for (let i = 0; i < MAG_SIZE; i++)
-    shellDivs[i].classList.toggle(\'empty\', i >= player.shells);
-  scoreEl.textContent = \'SCORE \' + player.score;
+    shellDivs[i].classList.toggle('empty', i >= player.shells);
+  scoreEl.textContent = 'SCORE ' + player.score;
   const alive = baboons.filter(b => !b.dead).length;
-  leftEl.textContent = (gameState === \'playing\' || gameState === \'transition\')
-    ? \'BABOONS LEFT: \' + alive : \'\';
+  leftEl.textContent = (gameState === 'playing' || gameState === 'transition')
+    ? 'BABOONS LEFT: ' + alive : '';
 }
 
 let hintTimer = null;
 function showHint(text) {
   hintEl.textContent = text;
   clearTimeout(hintTimer);
-  hintTimer = setTimeout(() => { hintEl.textContent = \'\'; }, 1200);
+  hintTimer = setTimeout(() => { hintEl.textContent = ''; }, 1200);
 }
 
 function addKillFeed(html) {
-  const d = document.createElement(\'div\');
-  d.className = \'kf-item\'; d.innerHTML = \'&#128018; \' + html;
+  const d = document.createElement('div');
+  d.className = 'kf-item'; d.innerHTML = '&#128018; ' + html;
   killfeedEl.prepend(d);
   while (killfeedEl.children.length > 6) killfeedEl.lastChild.remove();
-  setTimeout(() => { d.style.transition = \'opacity .6s\'; d.style.opacity = \'0\';
+  setTimeout(() => { d.style.transition = 'opacity .6s'; d.style.opacity = '0';
     setTimeout(() => d.remove(), 650); }, 3500);
 }
 
@@ -933,22 +933,22 @@ function updateSpreadCircle() {
   const D = spreadDiameter(d);
   const focal = (innerHeight / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const px = Math.max(14, (D / d) * focal);
-  spreadEl.style.width = px + \'px\';
-  spreadEl.style.height = px + \'px\';
+  spreadEl.style.width = px + 'px';
+  spreadEl.style.height = px + 'px';
 }
 
 /* ============================================================
    LEVELS / SCREENS
 ============================================================ */
-const bannerEl = document.getElementById(\'banner\');
-const bannerTitle = document.getElementById(\'banner-title\');
-const bannerSub = document.getElementById(\'banner-sub\');
+const bannerEl = document.getElementById('banner');
+const bannerTitle = document.getElementById('banner-title');
+const bannerSub = document.getElementById('banner-sub');
 
 function showBanner(title, sub, dur = 2800) {
   bannerTitle.textContent = title;
   bannerSub.textContent = sub;
-  bannerEl.style.opacity = \'1\';
-  setTimeout(() => { bannerEl.style.opacity = \'0\'; }, dur);
+  bannerEl.style.opacity = '1';
+  setTimeout(() => { bannerEl.style.opacity = '0'; }, dur);
 }
 
 function startLevel(n) {
@@ -966,7 +966,7 @@ function startLevel(n) {
   player.needPump = false;
   player.reloading = 0; player.pumping = 0;
 
-  // Spawn baboons within the level\'s area radius, min ~20 m from player
+  // Spawn baboons within the level's area radius, min ~20 m from player
   const origin = camera.position;
   for (let i = 0; i < cfg.count; i++) {
     let x, z, tries = 0;
@@ -980,100 +980,100 @@ function startLevel(n) {
     baboons.push(new Baboon(new THREE.Vector3(x, 0, z), cfg));
   }
 
-  showBanner(cfg.name, cfg.count + \' BABOONS\' + (cfg.armed ? \' - ARMED WITH SHOTGUNS!\' : \'\') + \' - AREA \' + cfg.area + \' m\');
+  showBanner(cfg.name, cfg.count + ' BABOONS' + (cfg.armed ? ' - ARMED WITH SHOTGUNS!' : '') + ' - AREA ' + cfg.area + ' m');
   updateHUD();
 }
 
 function statsTable() {
   const secs = Math.round((performance.now() - player.startTime) / 1000);
   const acc = player.shotsFired ? Math.round(100 * player.pelletsHit / (player.shotsFired * PELLETS)) : 0;
-  return \'<tr><td>Score</td><td><b>\' + player.score + \'</b></td></tr>\'
-    + \'<tr><td>Baboons hunted</td><td>\' + player.kills + \'</td></tr>\'
-    + \'<tr><td>Shells fired</td><td>\' + player.shotsFired + \'</td></tr>\'
-    + \'<tr><td>Pellet accuracy</td><td>\' + acc + \'%</td></tr>\'
-    + \'<tr><td>Level reached</td><td>\' + currentLevel + \' / 5</td></tr>\'
-    + \'<tr><td>Time</td><td>\' + Math.floor(secs / 60) + \'m \' + (secs % 60) + \'s</td></tr>\';
+  return '<tr><td>Score</td><td><b>' + player.score + '</b></td></tr>'
+    + '<tr><td>Baboons hunted</td><td>' + player.kills + '</td></tr>'
+    + '<tr><td>Shells fired</td><td>' + player.shotsFired + '</td></tr>'
+    + '<tr><td>Pellet accuracy</td><td>' + acc + '%</td></tr>'
+    + '<tr><td>Level reached</td><td>' + currentLevel + ' / 5</td></tr>'
+    + '<tr><td>Time</td><td>' + Math.floor(secs / 60) + 'm ' + (secs % 60) + 's</td></tr>';
 }
 
 function gameOver() {
-  gameState = \'gameover\';
-  document.getElementById(\'gameover-stats\').innerHTML = statsTable();
-  document.getElementById(\'gameover-screen\').classList.remove(\'hidden\');
+  gameState = 'gameover';
+  document.getElementById('gameover-stats').innerHTML = statsTable();
+  document.getElementById('gameover-screen').classList.remove('hidden');
   ignoreNextUnlock = true;
   controls.unlock();
 }
 
 function victory() {
-  gameState = \'victory\';
-  document.getElementById(\'victory-stats\').innerHTML = statsTable();
-  document.getElementById(\'victory-screen\').classList.remove(\'hidden\');
+  gameState = 'victory';
+  document.getElementById('victory-stats').innerHTML = statsTable();
+  document.getElementById('victory-screen').classList.remove('hidden');
   ignoreNextUnlock = true;
   controls.unlock();
 }
 
 function pauseGame() {
-  if (gameState !== \'playing\' && gameState !== \'transition\') return;
-  gameState = \'paused\';
-  document.getElementById(\'pause-level\').textContent =
-    (LEVELS[currentLevel - 1] ? LEVELS[currentLevel - 1].name : \'\') + \' - SCORE \' + player.score;
-  document.getElementById(\'pause-screen\').classList.remove(\'hidden\');
+  if (gameState !== 'playing' && gameState !== 'transition') return;
+  gameState = 'paused';
+  document.getElementById('pause-level').textContent =
+    (LEVELS[currentLevel - 1] ? LEVELS[currentLevel - 1].name : '') + ' - SCORE ' + player.score;
+  document.getElementById('pause-screen').classList.remove('hidden');
 }
 
 function resumeGame() {
-  document.getElementById(\'pause-screen\').classList.add(\'hidden\');
-  gameState = \'playing\';
+  document.getElementById('pause-screen').classList.add('hidden');
+  gameState = 'playing';
 }
 
 /* ============================================================
    INPUT
 ============================================================ */
-document.addEventListener(\'contextmenu\', e => e.preventDefault());
+document.addEventListener('contextmenu', e => e.preventDefault());
 
-document.addEventListener(\'mousedown\', e => {
-  if (!controls.isLocked || gameState !== \'playing\') return;
+document.addEventListener('mousedown', e => {
+  if (!controls.isLocked || gameState !== 'playing') return;
   if (e.button === 0) tryFire();
   else if (e.button === 2) tryPump();
 });
 
-document.addEventListener(\'keydown\', e => {
+document.addEventListener('keydown', e => {
   switch (e.code) {
-    case \'KeyW\': input.f = true; break;
-    case \'KeyS\': input.b = true; break;
-    case \'KeyA\': input.l = true; break;
-    case \'KeyD\': input.r = true; break;
-    case \'ShiftLeft\': case \'ShiftRight\': input.sprint = true; break;
-    case \'KeyR\': tryReload(); break;
+    case 'KeyW': input.f = true; break;
+    case 'KeyS': input.b = true; break;
+    case 'KeyA': input.l = true; break;
+    case 'KeyD': input.r = true; break;
+    case 'ShiftLeft': case 'ShiftRight': input.sprint = true; break;
+    case 'KeyR': tryReload(); break;
   }
 });
-document.addEventListener(\'keyup\', e => {
+document.addEventListener('keyup', e => {
   switch (e.code) {
-    case \'KeyW\': input.f = false; break;
-    case \'KeyS\': input.b = false; break;
-    case \'KeyA\': input.l = false; break;
-    case \'KeyD\': input.r = false; break;
-    case \'ShiftLeft\': case \'ShiftRight\': input.sprint = false; break;
+    case 'KeyW': input.f = false; break;
+    case 'KeyS': input.b = false; break;
+    case 'KeyA': input.l = false; break;
+    case 'KeyD': input.r = false; break;
+    case 'ShiftLeft': case 'ShiftRight': input.sprint = false; break;
   }
 });
 
-controls.addEventListener(\'unlock\', () => {
+controls.addEventListener('unlock', () => {
   if (ignoreNextUnlock) { ignoreNextUnlock = false; return; }
-  if (gameState === \'playing\' || gameState === \'transition\') pauseGame();  // Esc
+  if (gameState === 'playing' || gameState === 'transition') pauseGame();  // Esc
 });
-controls.addEventListener(\'lock\', () => {
-  if (gameState === \'paused\') resumeGame();
+controls.addEventListener('lock', () => {
+  if (gameState === 'paused') resumeGame();
 });
 
-document.getElementById(\'btn-start\').addEventListener(\'click\', () => {
+document.getElementById('btn-start').addEventListener('click', () => {
   initAudio();
-  document.getElementById(\'start-screen\').classList.add(\'hidden\');
+  document.getElementById('start-screen').classList.add('hidden');
   player.startTime = performance.now();
-  gameState = \'playing\';
+  gameState = 'playing';
   controls.lock();
   startLevel(1);
 });
-document.getElementById(\'btn-resume\').addEventListener(\'click\', () => controls.lock());
-for (const id of [\'btn-restart-pause\', \'btn-restart-go\', \'btn-restart-v\'])
-  document.getElementById(id).addEventListener(\'click\', () => location.reload());
+document.getElementById('btn-resume').addEventListener('click', () => controls.lock());
+for (const id of ['btn-restart-pause', 'btn-restart-go', 'btn-restart-v'])
+  document.getElementById(id).addEventListener('click', () => location.reload());
 
 /* ============================================================
    MAIN LOOP
@@ -1086,7 +1086,7 @@ function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
 
-  if (gameState === \'playing\') {
+  if (gameState === 'playing') {
     /* --- Player movement --- */
     const speed = input.sprint ? SPRINT_SPEED : WALK_SPEED;
     const ax = (input.r ? 1 : 0) - (input.l ? 1 : 0);
@@ -1122,14 +1122,14 @@ function animate() {
       if (player.reloading <= 0) {
         player.shells = MAG_SIZE;
         gun.rotation.x = 0;
-        showHint(\'LOADED\');
+        showHint('LOADED');
         updateHUD();
       }
     }
     if (player.needPump && player.pumping <= 0 && player.reloading <= 0 && player.shells > 0)
-      hintEl.textContent = \'PUMP!  (RIGHT-CLICK)\';
+      hintEl.textContent = 'PUMP!  (RIGHT-CLICK)';
     else if (!player.needPump && player.shells === 0 && player.reloading <= 0)
-      hintEl.textContent = \'PRESS R TO RELOAD\';
+      hintEl.textContent = 'PRESS R TO RELOAD';
 
     // Recoil
     if (player.recoil > 0) {
@@ -1157,16 +1157,16 @@ function animate() {
     if (baboons.length && baboons.every(b => b.dead)) {
       if (currentLevel < 5) {
         const next = currentLevel + 1;
-        gameState = \'transition\';
-        showBanner(\'DISTRICT CLEARED\', \'Advancing...\', 1800);
+        gameState = 'transition';
+        showBanner('DISTRICT CLEARED', 'Advancing...', 1800);
         setTimeout(() => {
-          if (gameState === \'transition\') { gameState = \'playing\'; startLevel(next); }
+          if (gameState === 'transition') { gameState = 'playing'; startLevel(next); }
         }, 2100);
       } else victory();
     }
 
     updateSpreadCircle();
-  } else if (gameState === \'transition\') {
+  } else if (gameState === 'transition') {
     for (const b of baboons) b.update(dt, camera.position);  // finish death anims
     updateSpreadCircle();
   }

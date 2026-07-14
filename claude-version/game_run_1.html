@@ -6,7 +6,7 @@
 <title>London Baboon Hunter — Pump-Action FPS</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  html,body { width:100%; height:100%; overflow:hidden; background:#000; font-family:\'Segoe UI\', Arial, sans-serif; user-select:none; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#000; font-family:'Segoe UI', Arial, sans-serif; user-select:none; }
   #c { display:block; width:100%; height:100%; }
 
   /* ---------- HUD ---------- */
@@ -118,8 +118,8 @@
 </script>
 
 <script type="module">
-import * as THREE from \'three\';
-import { PointerLockControls } from \'three/addons/controls/PointerLockControls.js\';
+import * as THREE from 'three';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
 /* =========================================================
    CONSTANTS & LEVEL DEFINITIONS
@@ -135,11 +135,11 @@ const STREET_HALF_LEN = 148;      // playable street runs z = -148..148
 const PLAY_HALF_WIDTH = 9.5;      // walkable strip |x| <= 9.5
 
 const LEVELS = [
-  { count: 5,  hp: 100, speed: 2.0, armed: false, area: 80,  name: \'WESTMINSTER DAWN\'  },
-  { count: 8,  hp: 100, speed: 3.0, armed: false, area: 90,  name: \'CAMDEN CHAOS\'      },
-  { count: 12, hp: 120, speed: 3.5, armed: false, area: 100, name: \'SOHO STREETS\'      },
-  { count: 15, hp: 150, speed: 4.0, armed: false, area: 110, name: \'BRIXTON RAMPAGE\'   },
-  { count: 10, hp: 200, speed: 4.0, armed: true,  area: 120, name: \'THE SHARD SHOWDOWN\'},
+  { count: 5,  hp: 100, speed: 2.0, armed: false, area: 80,  name: 'WESTMINSTER DAWN'  },
+  { count: 8,  hp: 100, speed: 3.0, armed: false, area: 90,  name: 'CAMDEN CHAOS'      },
+  { count: 12, hp: 120, speed: 3.5, armed: false, area: 100, name: 'SOHO STREETS'      },
+  { count: 15, hp: 150, speed: 4.0, armed: false, area: 110, name: 'BRIXTON RAMPAGE'   },
+  { count: 10, hp: 200, speed: 4.0, armed: true,  area: 120, name: 'THE SHARD SHOWDOWN'},
 ];
 
 /* Spread / impact-circle formula (diameter in metres at distance d):
@@ -156,7 +156,7 @@ function spreadDiameter(d) {
 ========================================================= */
 let AC = null, masterGain = null;
 function initAudio() {
-  if (AC) { if (AC.state === \'suspended\') AC.resume(); return; }
+  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
   AC = new (window.AudioContext || window.webkitAudioContext)();
   masterGain = AC.createGain();
   masterGain.gain.value = 0.5;
@@ -174,7 +174,7 @@ function playGunshot(volume = 1, when = 0) {
   const t = AC.currentTime + when;
   // main blast — filtered noise burst
   const src = AC.createBufferSource(); src.buffer = noiseBuffer(0.45);
-  const lp = AC.createBiquadFilter(); lp.type = \'lowpass\';
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass';
   lp.frequency.setValueAtTime(4500, t);
   lp.frequency.exponentialRampToValueAtTime(300, t + 0.4);
   const g = AC.createGain();
@@ -183,7 +183,7 @@ function playGunshot(volume = 1, when = 0) {
   src.connect(lp); lp.connect(g); g.connect(masterGain);
   src.start(t);
   // low-end thump
-  const osc = AC.createOscillator(); osc.type = \'sine\';
+  const osc = AC.createOscillator(); osc.type = 'sine';
   osc.frequency.setValueAtTime(120, t);
   osc.frequency.exponentialRampToValueAtTime(40, t + 0.25);
   const og = AC.createGain();
@@ -195,7 +195,7 @@ function playGunshot(volume = 1, when = 0) {
 function mechClick(when, vol = 0.5, freq = 2500) {
   const t = AC.currentTime + when;
   const src = AC.createBufferSource(); src.buffer = noiseBuffer(0.05);
-  const bp = AC.createBiquadFilter(); bp.type = \'bandpass\'; bp.frequency.value = freq; bp.Q.value = 1.5;
+  const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 1.5;
   const g = AC.createGain();
   g.gain.setValueAtTime(vol, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
@@ -218,7 +218,7 @@ function playScream(volume = 1) {
   if (!AC) return;
   const t = AC.currentTime;
   for (let v = 0; v < 2; v++) {
-    const osc = AC.createOscillator(); osc.type = \'sawtooth\';
+    const osc = AC.createOscillator(); osc.type = 'sawtooth';
     const f0 = 500 + v * 130;
     osc.frequency.setValueAtTime(f0, t);
     osc.frequency.linearRampToValueAtTime(f0 * 2.4, t + 0.12);
@@ -228,7 +228,7 @@ function playScream(volume = 1) {
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(0.28 * volume, t + 0.05);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-    const bp = AC.createBiquadFilter(); bp.type = \'bandpass\'; bp.frequency.value = 1400; bp.Q.value = 0.8;
+    const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 0.8;
     osc.connect(bp); bp.connect(g); g.connect(masterGain);
     osc.start(t); osc.stop(t + 0.6);
   }
@@ -236,7 +236,7 @@ function playScream(volume = 1) {
 function playHurt() {
   if (!AC) return;
   const t = AC.currentTime;
-  const osc = AC.createOscillator(); osc.type = \'triangle\';
+  const osc = AC.createOscillator(); osc.type = 'triangle';
   osc.frequency.setValueAtTime(220, t);
   osc.frequency.exponentialRampToValueAtTime(90, t + 0.18);
   const g = AC.createGain();
@@ -249,7 +249,7 @@ function playHurt() {
 /* =========================================================
    THREE.JS SCENE SETUP
 ========================================================= */
-const canvas = document.getElementById(\'c\');
+const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -264,7 +264,7 @@ camera.position.set(0, EYE_HEIGHT, 0);
 const controls = new PointerLockControls(camera, document.body);
 scene.add(controls.getObject());
 
-window.addEventListener(\'resize\', () => {
+window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -321,23 +321,23 @@ for (const side of [-1, 1]) {
 
 // --- building window texture (canvas) ---
 function makeBuildingTexture(baseColor, litChance) {
-  const cv = document.createElement(\'canvas\');
+  const cv = document.createElement('canvas');
   cv.width = 256; cv.height = 256;
-  const ctx = cv.getContext(\'2d\');
+  const ctx = cv.getContext('2d');
   ctx.fillStyle = baseColor; ctx.fillRect(0, 0, 256, 256);
-  ctx.fillStyle = \'rgba(0,0,0,0.25)\';
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
   for (let i = 0; i < 40; i++) ctx.fillRect(Math.random() * 256, Math.random() * 256, 3, 3);
   const cols = 6, rows = 8, ww = 22, wh = 16;
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const x = 14 + c * 38, y = 14 + r * 30;
-      ctx.fillStyle = \'#0a0d12\';
+      ctx.fillStyle = '#0a0d12';
       ctx.fillRect(x - 2, y - 2, ww + 4, wh + 4);
       if (Math.random() < litChance) {
         const warm = Math.random() < 0.8;
-        ctx.fillStyle = warm ? `rgba(255,${190 + Math.random() * 50 | 0},110,0.95)` : \'rgba(160,200,255,0.9)\';
+        ctx.fillStyle = warm ? `rgba(255,${190 + Math.random() * 50 | 0},110,0.95)` : 'rgba(160,200,255,0.9)';
       } else {
-        ctx.fillStyle = \'#141a24\';
+        ctx.fillStyle = '#141a24';
       }
       ctx.fillRect(x, y, ww, wh);
     }
@@ -347,10 +347,10 @@ function makeBuildingTexture(baseColor, litChance) {
   return tex;
 }
 const buildingTextures = [
-  makeBuildingTexture(\'#4a3c33\', 0.35),   // brick brown
-  makeBuildingTexture(\'#3c4148\', 0.3),    // grey stone
-  makeBuildingTexture(\'#52443c\', 0.4),    // warm brick
-  makeBuildingTexture(\'#33383f\', 0.25),   // dark office
+  makeBuildingTexture('#4a3c33', 0.35),   // brick brown
+  makeBuildingTexture('#3c4148', 0.3),    // grey stone
+  makeBuildingTexture('#52443c', 0.4),    // warm brick
+  makeBuildingTexture('#33383f', 0.25),   // dark office
 ];
 
 // --- buildings on both sides ---
@@ -530,10 +530,10 @@ function createBaboon(cfg, px, pz) {
 
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, 12, 10), furDarkMat);
   head.position.set(0, 1.42, 0.06);
-  head.userData.part = \'head\';
+  head.userData.part = 'head';
   g.add(head); parts.head = head;
   const snout = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.15, 0.2), snoutMat);
-  snout.position.set(0, 1.36, 0.26); snout.userData.part = \'head\'; g.add(snout);
+  snout.position.set(0, 1.36, 0.26); snout.userData.part = 'head'; g.add(snout);
 
   for (const s of [-1, 1]) {
     const eyeW = new THREE.Mesh(new THREE.SphereGeometry(0.038, 8, 6), eyeWhiteMat);
@@ -549,10 +549,10 @@ function createBaboon(cfg, px, pz) {
   for (const s of [-1, 1]) {
     const arm = new THREE.Mesh(armGeo, furMat);
     arm.position.set(s * 0.37, 1.12, 0.02);
-    g.add(arm); parts[s < 0 ? \'armL\' : \'armR\'] = arm;
+    g.add(arm); parts[s < 0 ? 'armL' : 'armR'] = arm;
     const leg = new THREE.Mesh(legGeo, furDarkMat);
     leg.position.set(s * 0.17, 0.58, 0);
-    g.add(leg); parts[s < 0 ? \'legL\' : \'legR\'] = leg;
+    g.add(leg); parts[s < 0 ? 'legL' : 'legR'] = leg;
   }
 
   const tail = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.5, 0.08), furMat);
@@ -571,7 +571,7 @@ function createBaboon(cfg, px, pz) {
   }
 
   // health bar sprite
-  const cv = document.createElement(\'canvas\');
+  const cv = document.createElement('canvas');
   cv.width = 64; cv.height = 10;
   const hbTex = new THREE.CanvasTexture(cv);
   const hbSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: hbTex, depthTest: true }));
@@ -605,13 +605,13 @@ function createBaboon(cfg, px, pz) {
   return e;
 }
 function drawHealthBar(e) {
-  const ctx = e.hbCanvas.getContext(\'2d\');
+  const ctx = e.hbCanvas.getContext('2d');
   ctx.clearRect(0, 0, 64, 10);
-  ctx.fillStyle = \'rgba(0,0,0,0.7)\'; ctx.fillRect(0, 0, 64, 10);
-  ctx.fillStyle = \'#5a120e\'; ctx.fillRect(1, 1, 62, 8);
+  ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, 64, 10);
+  ctx.fillStyle = '#5a120e'; ctx.fillRect(1, 1, 62, 8);
   const frac = Math.max(0, e.hp / e.maxHp);
-  ctx.fillStyle = frac > 0.5 ? \'#4fc94f\' : frac > 0.25 ? \'#e0b califica\'.slice(0,7) : \'#d23c2a\';
-  ctx.fillStyle = frac > 0.5 ? \'#4fc94f\' : frac > 0.25 ? \'#e0b23c\' : \'#d23c2a\';
+  ctx.fillStyle = frac > 0.5 ? '#4fc94f' : frac > 0.25 ? '#e0b califica'.slice(0,7) : '#d23c2a';
+  ctx.fillStyle = frac > 0.5 ? '#4fc94f' : frac > 0.25 ? '#e0b23c' : '#d23c2a';
   ctx.fillRect(1, 1, 62 * frac, 8);
   e.hbTex.needsUpdate = true;
 }
@@ -654,7 +654,7 @@ function updateParticles(dt) {
 /* =========================================================
    GAME STATE
 ========================================================= */
-let state = \'menu\';   // menu | playing | paused | transition | levelcomplete | gameover | victory
+let state = 'menu';   // menu | playing | paused | transition | levelcomplete | gameover | victory
 let levelIndex = 0;
 let playerHP = PLAYER_MAX_HP;
 let score = 0, levelStartScore = 0;
@@ -673,65 +673,65 @@ const hittables = [worldGroup, enemyRoot];
    DOM / HUD refs
 ========================================================= */
 const $ = id => document.getElementById(id);
-const screenEl = $(\'screen\'), panelEl = $(\'panelContent\');
-const healthInner = $(\'healthInner\'), ammoCount = $(\'ammoCount\'), shellsEl = $(\'shells\');
-const gunState = $(\'gunState\'), levelNameEl = $(\'levelName\'), scoreLine = $(\'scoreLine\');
-const spreadCircle = $(\'spreadCircle\'), actionHint = $(\'actionHint\');
-const killFeed = $(\'killFeed\'), dmgEl = $(\'dmg\');
+const screenEl = $('screen'), panelEl = $('panelContent');
+const healthInner = $('healthInner'), ammoCount = $('ammoCount'), shellsEl = $('shells');
+const gunState = $('gunState'), levelNameEl = $('levelName'), scoreLine = $('scoreLine');
+const spreadCircle = $('spreadCircle'), actionHint = $('actionHint');
+const killFeed = $('killFeed'), dmgEl = $('dmg');
 
 // build shell icons
 const shellDivs = [];
 for (let i = 0; i < MAG_SIZE; i++) {
-  const d = document.createElement(\'div\');
-  d.className = \'shell full\';
+  const d = document.createElement('div');
+  d.className = 'shell full';
   shellsEl.appendChild(d);
   shellDivs.push(d);
 }
 
 function updateHUD() {
-  healthInner.style.width = Math.max(0, playerHP) + \'%\';
+  healthInner.style.width = Math.max(0, playerHP) + '%';
   ammoCount.innerHTML = `${gun.ammo} <span>/ ${MAG_SIZE}</span>`;
-  for (let i = 0; i < MAG_SIZE; i++) shellDivs[i].className = \'shell\' + (i < gun.ammo ? \' full\' : \'\');
+  for (let i = 0; i < MAG_SIZE; i++) shellDivs[i].className = 'shell' + (i < gun.ammo ? ' full' : '');
   const alive = enemies.filter(e => !e.dead).length;
   const lvl = LEVELS[levelIndex];
   levelNameEl.textContent = `LEVEL ${levelIndex + 1} — ${lvl.name}`;
   scoreLine.innerHTML = `SCORE ${score} &nbsp;•&nbsp; BABOONS ${lvl.count - alive}/${lvl.count}`;
 
-  if (gun.reloading) { gunState.textContent = \'RELOADING…\'; actionHint.style.display = \'none\'; }
+  if (gun.reloading) { gunState.textContent = 'RELOADING…'; actionHint.style.display = 'none'; }
   else if (gun.needsPump && gun.ammo > 0) {
-    gunState.textContent = \'PUMP REQUIRED (RIGHT-CLICK)\';
-    actionHint.textContent = \'PUMP!\'; actionHint.style.display = \'block\';
+    gunState.textContent = 'PUMP REQUIRED (RIGHT-CLICK)';
+    actionHint.textContent = 'PUMP!'; actionHint.style.display = 'block';
   } else if (gun.ammo === 0) {
-    gunState.textContent = \'EMPTY — PRESS R\';
-    actionHint.textContent = \'RELOAD (R)\'; actionHint.style.display = \'block\';
-  } else { gunState.textContent = \'READY\'; actionHint.style.display = \'none\'; }
+    gunState.textContent = 'EMPTY — PRESS R';
+    actionHint.textContent = 'RELOAD (R)'; actionHint.style.display = 'block';
+  } else { gunState.textContent = 'READY'; actionHint.style.display = 'none'; }
 }
 
 function addKillFeed(text) {
-  const d = document.createElement(\'div\');
-  d.className = \'kf\';
+  const d = document.createElement('div');
+  d.className = 'kf';
   d.textContent = text;
   killFeed.prepend(d);
   while (killFeed.children.length > 6) killFeed.removeChild(killFeed.lastChild);
-  setTimeout(() => d.classList.add(\'fade\'), 2600);
+  setTimeout(() => d.classList.add('fade'), 2600);
   setTimeout(() => d.remove(), 3300);
 }
 
 function flashDamage() {
-  dmgEl.style.transition = \'none\';
-  dmgEl.style.opacity = \'0.55\';
+  dmgEl.style.transition = 'none';
+  dmgEl.style.opacity = '0.55';
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    dmgEl.style.transition = \'opacity 0.55s\';
-    dmgEl.style.opacity = \'0\';
+    dmgEl.style.transition = 'opacity 0.55s';
+    dmgEl.style.opacity = '0';
   }));
 }
 
 /* ---------- overlay screens ---------- */
-function showScreen(html) { panelEl.innerHTML = html; screenEl.classList.remove(\'hidden\'); }
-function hideScreen() { screenEl.classList.add(\'hidden\'); }
+function showScreen(html) { panelEl.innerHTML = html; screenEl.classList.remove('hidden'); }
+function hideScreen() { screenEl.classList.add('hidden'); }
 
 function showStartScreen() {
-  state = \'menu\';
+  state = 'menu';
   showScreen(`
     <h1>LONDON BABOON HUNTER</h1>
     <div class="sub">A pump-action nightmare on the streets of London</div>
@@ -746,11 +746,11 @@ function showStartScreen() {
       <div><b>Esc</b> Pause</div>
     </div><br>
     <button id="btnStart">START HUNT</button>`);
-  $(\'btnStart\').onclick = () => { initAudio(); startGame(); };
+  $('btnStart').onclick = () => { initAudio(); startGame(); };
 }
 
 function showLevelIntro() {
-  state = \'transition\';
+  state = 'transition';
   const lvl = LEVELS[levelIndex];
   showScreen(`
     <h2>LEVEL ${levelIndex + 1}</h2>
@@ -759,14 +759,14 @@ function showLevelIntro() {
       Baboons: <b>${lvl.count}</b><br>
       Health each: <b>${lvl.hp} HP</b> &nbsp;|&nbsp; Speed: <b>${lvl.speed} m/s</b><br>
       Combat zone: <b>${lvl.area}m</b><br>
-      ${lvl.armed ? \'<span style="color:#ff5544">⚠ ARMED WITH SHOTGUNS — THEY SHOOT BACK!</span>\' : \'Unarmed — but their fangs are not.\'}
+      ${lvl.armed ? '<span style="color:#ff5544">⚠ ARMED WITH SHOTGUNS — THEY SHOOT BACK!</span>' : 'Unarmed — but their fangs are not.'}
     </div><br>
     <button id="btnGo">ENGAGE</button>`);
-  $(\'btnGo\').onclick = () => { initAudio(); beginLevel(); };
+  $('btnGo').onclick = () => { initAudio(); beginLevel(); };
 }
 
 function showLevelComplete() {
-  state = \'levelcomplete\';
+  state = 'levelcomplete';
   controls.unlock();
   const acc = stats.pelletsFired ? Math.round(100 * stats.pelletsHit / stats.pelletsFired) : 0;
   showScreen(`
@@ -777,11 +777,11 @@ function showLevelComplete() {
       Pellet accuracy: <b>${acc}%</b>
     </div><br>
     <button id="btnNext">NEXT LEVEL</button>`);
-  $(\'btnNext\').onclick = () => { levelIndex++; showLevelIntro(); };
+  $('btnNext').onclick = () => { levelIndex++; showLevelIntro(); };
 }
 
 function showPause() {
-  state = \'paused\';
+  state = 'paused';
   showScreen(`
     <h2>PAUSED</h2>
     <div class="controls">
@@ -792,17 +792,17 @@ function showPause() {
     </div><br>
     <button id="btnResume">RESUME</button>
     <button id="btnQuit" class="alt">QUIT TO MENU</button>`);
-  $(\'btnResume\').onclick = resumeGame;
-  $(\'btnQuit\').onclick = () => { showStartScreen(); };
+  $('btnResume').onclick = resumeGame;
+  $('btnQuit').onclick = () => { showStartScreen(); };
 }
 function resumeGame() {
   hideScreen();
-  state = \'playing\';
+  state = 'playing';
   controls.lock();
 }
 
 function showGameOver() {
-  state = \'gameover\';
+  state = 'gameover';
   controls.unlock();
   const acc = stats.pelletsFired ? Math.round(100 * stats.pelletsHit / stats.pelletsFired) : 0;
   showScreen(`
@@ -817,12 +817,12 @@ function showGameOver() {
     </div><br>
     <button id="btnRetry">RETRY LEVEL</button>
     <button id="btnMenu" class="alt">MAIN MENU</button>`);
-  $(\'btnRetry\').onclick = () => { score = levelStartScore; showLevelIntro(); };
-  $(\'btnMenu\').onclick = showStartScreen;
+  $('btnRetry').onclick = () => { score = levelStartScore; showLevelIntro(); };
+  $('btnMenu').onclick = showStartScreen;
 }
 
 function showVictory() {
-  state = \'victory\';
+  state = 'victory';
   controls.unlock();
   const acc = stats.pelletsFired ? Math.round(100 * stats.pelletsHit / stats.pelletsFired) : 0;
   showScreen(`
@@ -836,7 +836,7 @@ function showVictory() {
       Total time: <b>${stats.time.toFixed(1)}s</b>
     </div><br>
     <button id="btnAgain">PLAY AGAIN</button>`);
-  $(\'btnAgain\').onclick = () => { initAudio(); startGame(); };
+  $('btnAgain').onclick = () => { initAudio(); startGame(); };
 }
 
 /* =========================================================
@@ -871,7 +871,7 @@ function beginLevel() {
     enemies.push(createBaboon(lvl, x, z));
   }
   hideScreen();
-  state = \'playing\';
+  state = 'playing';
   controls.lock();
   updateHUD();
 }
@@ -879,21 +879,21 @@ function beginLevel() {
 /* =========================================================
    INPUT
 ========================================================= */
-document.addEventListener(\'contextmenu\', e => e.preventDefault());
-document.addEventListener(\'keydown\', e => {
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
   keys[e.code] = true;
-  if (e.code === \'KeyR\' && state === \'playing\') tryReload();
+  if (e.code === 'KeyR' && state === 'playing') tryReload();
 });
-document.addEventListener(\'keyup\', e => { keys[e.code] = false; });
+document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-document.addEventListener(\'mousedown\', e => {
-  if (state !== \'playing\' || !controls.isLocked) return;
+document.addEventListener('mousedown', e => {
+  if (state !== 'playing' || !controls.isLocked) return;
   if (e.button === 0) tryFire();
   else if (e.button === 2) tryPump();
 });
 
-controls.addEventListener(\'unlock\', () => {
-  if (state === \'playing\') showPause();
+controls.addEventListener('unlock', () => {
+  if (state === 'playing') showPause();
 });
 
 /* =========================================================
@@ -948,7 +948,7 @@ function tryFire() {
     }
     if (enemy && !enemy.dead) {
       stats.pelletsHit++;
-      const headshot = hit.object.userData.part === \'head\';
+      const headshot = hit.object.userData.part === 'head';
       damageEnemy(enemy, PELLET_DAMAGE * (headshot ? 1.5 : 1), hit.distance);
       spawnParticles(hit.point, true, 3);
     } else {
@@ -997,7 +997,7 @@ function damageEnemy(e, dmg, dist) {
 }
 
 function damagePlayer(dmg) {
-  if (state !== \'playing\') return;
+  if (state !== 'playing') return;
   playerHP -= dmg;
   flashDamage();
   playHurt();
@@ -1017,11 +1017,11 @@ function enemyShoot(e, dist) {
   // muzzle flash + report scaled by distance
   const vol = THREE.MathUtils.clamp(1 - dist / 150, 0.1, 0.85);
   playGunshot(vol);
-  setTimeout(() => { if (!e.dead && state === \'playing\') playPump(vol * 0.7); }, 650);
+  setTimeout(() => { if (!e.dead && state === 'playing') playPump(vol * 0.7); }, 650);
   e.flashOff = nowT + 0.08;
   e.eflash.visible = true;
 
-  // buckshot: pellets land in the formula\'s impact circle around the player
+  // buckshot: pellets land in the formula's impact circle around the player
   const dia = spreadDiameter(dist);
   const R = dia / 2;
   const aimErr = 0.15 + dist * 0.012;          // baboons are imperfect marksbeasts
@@ -1155,12 +1155,12 @@ function applyObstacles(pos, radius) {
    PLAYER MOVEMENT
 ========================================================= */
 function updatePlayer(dt) {
-  const speed = keys[\'ShiftLeft\'] || keys[\'ShiftRight\'] ? SPRINT_SPEED : WALK_SPEED;
+  const speed = keys['ShiftLeft'] || keys['ShiftRight'] ? SPRINT_SPEED : WALK_SPEED;
   let fz = 0, rx = 0;
-  if (keys[\'KeyW\']) fz += 1;
-  if (keys[\'KeyS\']) fz -= 1;
-  if (keys[\'KeyD\']) rx += 1;
-  if (keys[\'KeyA\']) rx -= 1;
+  if (keys['KeyW']) fz += 1;
+  if (keys['KeyS']) fz -= 1;
+  if (keys['KeyD']) rx += 1;
+  if (keys['KeyA']) rx -= 1;
   if (fz !== 0 || rx !== 0) {
     const inv = 1 / Math.hypot(fz, rx);
     controls.moveForward(fz * inv * speed * dt);
@@ -1214,8 +1214,8 @@ function updateSpreadCircle() {
   const fovRad = THREE.MathUtils.degToRad(camera.fov);
   const px = Math.tan(halfAngle) / Math.tan(fovRad / 2) * (window.innerHeight / 2);
   const size = Math.max(14, Math.min(220, px * 2));
-  spreadCircle.style.width = size + \'px\';
-  spreadCircle.style.height = size + \'px\';
+  spreadCircle.style.width = size + 'px';
+  spreadCircle.style.height = size + 'px';
 }
 
 /* =========================================================
@@ -1227,7 +1227,7 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.1);
   nowT += dt;
 
-  if (state === \'playing\') {
+  if (state === 'playing') {
     stats.time += dt;
     updatePlayer(dt);
     updateEnemies(dt);

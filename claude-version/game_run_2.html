@@ -6,7 +6,7 @@
 <title>LONDON BABOON HUNT - Pump-Action FPS</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: \'Segoe UI\', Arial, sans-serif; user-select: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Arial, sans-serif; user-select: none; }
   #game-canvas { display: block; }
 
   /* ---------- HUD ---------- */
@@ -93,7 +93,7 @@
   <h1>LONDON BABOON HUNT</h1>
   <h2>PUMP-ACTION SHOTGUN &bull; 5 LEVELS</h2>
   <p>Escaped baboons are rampaging through the streets of London.<br>
-     You are the city\'s last hunter. Clear all five districts.</p>
+     You are the city's last hunter. Clear all five districts.</p>
   <div class="keys">
     <b>W / A / S / D</b> Move<br>
     <b>MOUSE</b> Look<br>
@@ -143,8 +143,8 @@
 </script>
 
 <script type="module">
-import * as THREE from \'three\';
-import { PointerLockControls } from \'three/addons/controls/PointerLockControls.js\';
+import * as THREE from 'three';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
 /* =====================================================================
    CONSTANTS & LEVEL DATA
@@ -161,16 +161,16 @@ const SPRINT_MULT = 1.75;
 const EYE_HEIGHT = 1.7;
 
 const LEVELS = [
-  { name: \'HYDE PARK CORNER\', count: 5,  hp: 100, speed: 2.0, armed: false, area: 80,
-    desc: \'5 baboons sighted. They are unarmed - for now.\' },
-  { name: \'CAMDEN MARKET\',    count: 8,  hp: 100, speed: 3.0, armed: false, area: 90,
-    desc: \'8 baboons, faster and angrier.\' },
-  { name: \'BRICK LANE\',       count: 12, hp: 120, speed: 3.5, armed: false, area: 100,
-    desc: \'12 tougher baboons swarm the street.\' },
-  { name: \'WESTMINSTER\',      count: 15, hp: 150, speed: 4.0, armed: false, area: 110,
-    desc: \'15 hardened baboons. Watch every alley.\' },
-  { name: \'TOWER BRIDGE\',     count: 10, hp: 200, speed: 4.0, armed: true,  area: 120,
-    desc: \'The alpha troop raided an armoury. THEY HAVE SHOTGUNS.\' },
+  { name: 'HYDE PARK CORNER', count: 5,  hp: 100, speed: 2.0, armed: false, area: 80,
+    desc: '5 baboons sighted. They are unarmed - for now.' },
+  { name: 'CAMDEN MARKET',    count: 8,  hp: 100, speed: 3.0, armed: false, area: 90,
+    desc: '8 baboons, faster and angrier.' },
+  { name: 'BRICK LANE',       count: 12, hp: 120, speed: 3.5, armed: false, area: 100,
+    desc: '12 tougher baboons swarm the street.' },
+  { name: 'WESTMINSTER',      count: 15, hp: 150, speed: 4.0, armed: false, area: 110,
+    desc: '15 hardened baboons. Watch every alley.' },
+  { name: 'TOWER BRIDGE',     count: 10, hp: 200, speed: 4.0, armed: true,  area: 120,
+    desc: 'The alpha troop raided an armoury. THEY HAVE SHOTGUNS.' },
 ];
 
 /* Spread / impact-circle formula (diameter in metres at distance d):
@@ -189,7 +189,7 @@ function spreadDiameter(d) {
 let audioCtx = null;
 function initAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === \'suspended\') audioCtx.resume();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 function noiseBuffer(dur) {
   const sr = audioCtx.sampleRate, buf = audioCtx.createBuffer(1, sr * dur, sr);
@@ -202,13 +202,13 @@ function playGunshot(volume = 1) {
   const t = audioCtx.currentTime;
   // noise blast
   const src = audioCtx.createBufferSource(); src.buffer = noiseBuffer(0.4);
-  const lp = audioCtx.createBiquadFilter(); lp.type = \'lowpass\';
+  const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass';
   lp.frequency.setValueAtTime(3200, t); lp.frequency.exponentialRampToValueAtTime(180, t + 0.35);
   const g = audioCtx.createGain();
   g.gain.setValueAtTime(0.9 * volume, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
   src.connect(lp).connect(g).connect(audioCtx.destination); src.start(t);
   // low thump
-  const osc = audioCtx.createOscillator(); osc.type = \'sine\';
+  const osc = audioCtx.createOscillator(); osc.type = 'sine';
   osc.frequency.setValueAtTime(110, t); osc.frequency.exponentialRampToValueAtTime(38, t + 0.18);
   const g2 = audioCtx.createGain();
   g2.gain.setValueAtTime(0.8 * volume, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
@@ -216,7 +216,7 @@ function playGunshot(volume = 1) {
 }
 function mechanicalClick(t, freq, vol, dur) {
   const src = audioCtx.createBufferSource(); src.buffer = noiseBuffer(dur);
-  const bp = audioCtx.createBiquadFilter(); bp.type = \'bandpass\'; bp.frequency.value = freq; bp.Q.value = 2.5;
+  const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 2.5;
   const g = audioCtx.createGain();
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
   src.connect(bp).connect(g).connect(audioCtx.destination); src.start(t);
@@ -236,14 +236,14 @@ function playReloadShell() {
 function playScream(distFactor = 1) {
   if (!audioCtx) return;
   const t = audioCtx.currentTime, vol = 0.5 * distFactor;
-  const osc = audioCtx.createOscillator(); osc.type = \'sawtooth\';
+  const osc = audioCtx.createOscillator(); osc.type = 'sawtooth';
   osc.frequency.setValueAtTime(500 + Math.random() * 200, t);
   osc.frequency.linearRampToValueAtTime(1200 + Math.random() * 300, t + 0.1);
   osc.frequency.linearRampToValueAtTime(350, t + 0.35);
   const lfo = audioCtx.createOscillator(); lfo.frequency.value = 22;
   const lfoG = audioCtx.createGain(); lfoG.gain.value = 120;
   lfo.connect(lfoG).connect(osc.frequency);
-  const bp = audioCtx.createBiquadFilter(); bp.type = \'bandpass\'; bp.frequency.value = 1100; bp.Q.value = 1.2;
+  const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1100; bp.Q.value = 1.2;
   const g = audioCtx.createGain();
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
   osc.connect(bp).connect(g).connect(audioCtx.destination);
@@ -252,7 +252,7 @@ function playScream(distFactor = 1) {
 function playHurt() {
   if (!audioCtx) return;
   const t = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator(); osc.type = \'triangle\';
+  const osc = audioCtx.createOscillator(); osc.type = 'triangle';
   osc.frequency.setValueAtTime(220, t); osc.frequency.exponentialRampToValueAtTime(90, t + 0.2);
   const g = audioCtx.createGain();
   g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
@@ -265,7 +265,7 @@ function playHurt() {
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.domElement.id = \'game-canvas\';
+renderer.domElement.id = 'game-canvas';
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -278,7 +278,7 @@ camera.position.set(0, EYE_HEIGHT, 0);
 const controls = new PointerLockControls(camera, document.body);
 scene.add(controls.getObject());
 
-window.addEventListener(\'resize\', () => {
+window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -342,18 +342,18 @@ for (const side of [-1, 1]) {
 
 // Building facade texture (canvas - windows, some lit)
 function buildingTexture(baseColor, litChance) {
-  const c = document.createElement(\'canvas\'); c.width = 256; c.height = 512;
-  const g = c.getContext(\'2d\');
+  const c = document.createElement('canvas'); c.width = 256; c.height = 512;
+  const g = c.getContext('2d');
   g.fillStyle = baseColor; g.fillRect(0, 0, 256, 512);
-  g.fillStyle = \'rgba(0,0,0,0.25)\'; g.fillRect(0, 0, 256, 14); // cornice band
+  g.fillStyle = 'rgba(0,0,0,0.25)'; g.fillRect(0, 0, 256, 14); // cornice band
   for (let fy = 0; fy < 8; fy++) {
     for (let fx = 0; fx < 4; fx++) {
       const x = 20 + fx * 58, y = 30 + fy * 58;
       const lit = Math.random() < litChance;
-      g.fillStyle = \'#0a0c10\'; g.fillRect(x - 3, y - 3, 42, 48);
-      g.fillStyle = lit ? (Math.random() < 0.5 ? \'#ffd98c\' : \'#ffedbb\') : \'#141a26\';
+      g.fillStyle = '#0a0c10'; g.fillRect(x - 3, y - 3, 42, 48);
+      g.fillStyle = lit ? (Math.random() < 0.5 ? '#ffd98c' : '#ffedbb') : '#141a26';
       g.fillRect(x, y, 36, 42);
-      g.strokeStyle = \'rgba(0,0,0,0.55)\'; g.lineWidth = 2;
+      g.strokeStyle = 'rgba(0,0,0,0.55)'; g.lineWidth = 2;
       g.strokeRect(x, y, 36, 42);
       g.beginPath(); g.moveTo(x + 18, y); g.lineTo(x + 18, y + 42);
       g.moveTo(x, y + 21); g.lineTo(x + 36, y + 21); g.stroke();
@@ -363,7 +363,7 @@ function buildingTexture(baseColor, litChance) {
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
-const facadeColors = [\'#4a3c34\', \'#3c3430\', \'#514238\', \'#463a2f\', \'#3a3a40\', \'#55463a\'];
+const facadeColors = ['#4a3c34', '#3c3430', '#514238', '#463a2f', '#3a3a40', '#55463a'];
 for (const side of [-1, 1]) {
   let z = -STREET_LEN / 2;
   while (z < STREET_LEN / 2) {
@@ -475,7 +475,7 @@ const gun = new THREE.Group();
   stock.position.set(0, -0.03, 0.14); stock.rotation.x = 0.12; gun.add(stock);
   const pumpHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.18, 10), wood);
   pumpHandle.rotation.x = Math.PI / 2; pumpHandle.position.set(0, -0.035, -0.45);
-  pumpHandle.name = \'pump\'; gun.add(pumpHandle);
+  pumpHandle.name = 'pump'; gun.add(pumpHandle);
 }
 gun.position.set(0.28, -0.26, -0.5);
 camera.add(gun);
@@ -514,18 +514,18 @@ function createBaboon(cfg, x, z) {
   // Body
   const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.45, 4, 10), furMat);
   body.position.y = 0.85; body.rotation.x = 0.25;
-  body.userData.part = \'body\'; g.add(body);
+  body.userData.part = 'body'; g.add(body);
 
   // Head
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.21, 12, 10), furDark);
-  head.position.set(0, 1.42, 0.1); head.userData.part = \'head\'; g.add(head);
+  head.position.set(0, 1.42, 0.1); head.userData.part = 'head'; g.add(head);
   const muzzle = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.2), faceMat);
-  muzzle.position.set(0, 1.36, 0.28); muzzle.userData.part = \'head\'; g.add(muzzle);
+  muzzle.position.set(0, 1.36, 0.28); muzzle.userData.part = 'head'; g.add(muzzle);
 
   // Eyes
   for (const ex of [-0.08, 0.08]) {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), eyeWhiteMat);
-    eye.position.set(ex, 1.47, 0.27); eye.userData.part = \'head\'; g.add(eye);
+    eye.position.set(ex, 1.47, 0.27); eye.userData.part = 'head'; g.add(eye);
     const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 4), pupilMat);
     pupil.position.set(ex, 1.47, 0.3); pupil.raycast = noRaycast; g.add(pupil);
   }
@@ -533,21 +533,21 @@ function createBaboon(cfg, x, z) {
   // Arms
   const armGeo = new THREE.CapsuleGeometry(0.07, 0.42, 3, 8);
   const armL = new THREE.Mesh(armGeo, furMat);
-  armL.position.set(-0.33, 0.95, 0.05); armL.userData.part = \'body\'; g.add(armL);
+  armL.position.set(-0.33, 0.95, 0.05); armL.userData.part = 'body'; g.add(armL);
   const armR = new THREE.Mesh(armGeo, furMat);
-  armR.position.set(0.33, 0.95, 0.05); armR.userData.part = \'body\'; g.add(armR);
+  armR.position.set(0.33, 0.95, 0.05); armR.userData.part = 'body'; g.add(armR);
 
   // Legs
   const legGeo = new THREE.CapsuleGeometry(0.08, 0.38, 3, 8);
   const legL = new THREE.Mesh(legGeo, furDark);
-  legL.position.set(-0.15, 0.32, 0); legL.userData.part = \'body\'; g.add(legL);
+  legL.position.set(-0.15, 0.32, 0); legL.userData.part = 'body'; g.add(legL);
   const legR = new THREE.Mesh(legGeo, furDark);
-  legR.position.set(0.15, 0.32, 0); legR.userData.part = \'body\'; g.add(legR);
+  legR.position.set(0.15, 0.32, 0); legR.userData.part = 'body'; g.add(legR);
 
   // Tail
   const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 0.4, 3, 6), furDark);
   tail.position.set(0, 1.0, -0.35); tail.rotation.x = -1.0;
-  tail.userData.part = \'body\'; g.add(tail);
+  tail.userData.part = 'body'; g.add(tail);
 
   // Shotgun for level 5 baboons
   let gunMesh = null;
@@ -558,7 +558,7 @@ function createBaboon(cfg, x, z) {
     const stk = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.09, 0.25), gunDarkMat);
     stk.position.z = -0.15; gunMesh.add(stk);
     gunMesh.position.set(0.25, 1.05, 0.3);
-    gunMesh.children.forEach(m => m.userData.part = \'body\');
+    gunMesh.children.forEach(m => m.userData.part = 'body');
     g.add(gunMesh);
   }
 
@@ -593,7 +593,7 @@ function createBaboon(cfg, x, z) {
    GAME STATE
 ===================================================================== */
 const state = {
-  phase: \'menu\', // menu | playing | paused | transition | gameover | victory
+  phase: 'menu', // menu | playing | paused | transition | gameover | victory
   levelIdx: 0,
   score: 0,
   kills: 0,
@@ -609,15 +609,15 @@ const state = {
 };
 
 const keys = {};
-document.addEventListener(\'keydown\', e => {
+document.addEventListener('keydown', e => {
   keys[e.code] = true;
-  if (e.code === \'KeyR\') tryReload();
+  if (e.code === 'KeyR') tryReload();
 });
-document.addEventListener(\'keyup\', e => { keys[e.code] = false; });
+document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-document.addEventListener(\'contextmenu\', e => e.preventDefault());
-document.addEventListener(\'mousedown\', e => {
-  if (state.phase !== \'playing\' || !controls.isLocked) return;
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('mousedown', e => {
+  if (state.phase !== 'playing' || !controls.isLocked) return;
   if (e.button === 0) tryFire();
   else if (e.button === 2) tryPump();
 });
@@ -626,60 +626,60 @@ document.addEventListener(\'mousedown\', e => {
    UI HELPERS
 ===================================================================== */
 const $id = id => document.getElementById(id);
-const hud = $id(\'hud\');
-const shellsDiv = $id(\'shells\');
+const hud = $id('hud');
+const shellsDiv = $id('shells');
 
 function updateAmmoUI() {
-  $id(\'ammo-count\').innerHTML = state.ammo + \' <span>/ \' + MAG_SIZE + \'</span>\';
-  shellsDiv.innerHTML = \'\';
+  $id('ammo-count').innerHTML = state.ammo + ' <span>/ ' + MAG_SIZE + '</span>';
+  shellsDiv.innerHTML = '';
   for (let i = 0; i < MAG_SIZE; i++) {
-    const s = document.createElement(\'div\');
-    s.className = \'shell\' + (i < state.ammo ? \'\' : \' empty\');
+    const s = document.createElement('div');
+    s.className = 'shell' + (i < state.ammo ? '' : ' empty');
     shellsDiv.appendChild(s);
   }
-  let msg = \'\';
-  if (state.reloading) msg = \'RELOADING...\';
-  else if (state.pumping) msg = \'PUMPING...\';
-  else if (state.needPump) msg = \'RIGHT-CLICK TO PUMP\';
-  else if (state.ammo === 0) msg = \'PRESS R TO RELOAD\';
-  $id(\'weapon-state\').textContent = msg;
+  let msg = '';
+  if (state.reloading) msg = 'RELOADING...';
+  else if (state.pumping) msg = 'PUMPING...';
+  else if (state.needPump) msg = 'RIGHT-CLICK TO PUMP';
+  else if (state.ammo === 0) msg = 'PRESS R TO RELOAD';
+  $id('weapon-state').textContent = msg;
 }
 function updateHealthUI() {
   const pct = Math.max(0, state.playerHp) / PLAYER_MAX_HP * 100;
-  $id(\'health-bar\').style.width = pct + \'%\';
-  $id(\'health-bar\').style.background = pct > 50
-    ? \'linear-gradient(180deg,#6dff6d,#1faf1f)\'
-    : pct > 25 ? \'linear-gradient(180deg,#ffd24a,#c99a1f)\' : \'linear-gradient(180deg,#ff6d5a,#af1f1f)\';
-  $id(\'health-num\').textContent = Math.max(0, Math.ceil(state.playerHp));
+  $id('health-bar').style.width = pct + '%';
+  $id('health-bar').style.background = pct > 50
+    ? 'linear-gradient(180deg,#6dff6d,#1faf1f)'
+    : pct > 25 ? 'linear-gradient(180deg,#ffd24a,#c99a1f)' : 'linear-gradient(180deg,#ff6d5a,#af1f1f)';
+  $id('health-num').textContent = Math.max(0, Math.ceil(state.playerHp));
 }
 function updateScoreUI() {
-  $id(\'level-name\').textContent = \'LEVEL \' + (state.levelIdx + 1) + \' - \' + LEVELS[state.levelIdx].name;
-  $id(\'score-line\').textContent = \'SCORE: \' + state.score;
+  $id('level-name').textContent = 'LEVEL ' + (state.levelIdx + 1) + ' - ' + LEVELS[state.levelIdx].name;
+  $id('score-line').textContent = 'SCORE: ' + state.score;
   const left = baboons.filter(b => b.alive).length;
-  $id(\'baboons-left\').textContent = \'BABOONS REMAINING: \' + left;
+  $id('baboons-left').textContent = 'BABOONS REMAINING: ' + left;
 }
 function killFeed(text) {
-  const kf = $id(\'killfeed\');
-  const div = document.createElement(\'div\');
-  div.className = \'kill-msg\'; div.textContent = text;
+  const kf = $id('killfeed');
+  const div = document.createElement('div');
+  div.className = 'kill-msg'; div.textContent = text;
   kf.prepend(div);
   while (kf.children.length > 6) kf.removeChild(kf.lastChild);
-  setTimeout(() => { div.style.opacity = \'0\'; }, 3500);
+  setTimeout(() => { div.style.opacity = '0'; }, 3500);
   setTimeout(() => { div.remove(); }, 4200);
 }
 function damageFlash() {
-  const df = $id(\'damage-flash\');
-  df.style.transition = \'none\'; df.style.opacity = \'1\';
+  const df = $id('damage-flash');
+  df.style.transition = 'none'; df.style.opacity = '1';
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    df.style.transition = \'opacity 0.45s ease-out\'; df.style.opacity = \'0\';
+    df.style.transition = 'opacity 0.45s ease-out'; df.style.opacity = '0';
   }));
 }
 function statsHTML() {
   const t = ((performance.now() - state.startTime) / 1000) | 0;
   const acc = state.shotsFired ? Math.round(state.pelletHits / (state.shotsFired * PELLETS) * 100) : 0;
-  return \'SCORE: <b>\' + state.score + \'</b><br>KILLS: <b>\' + state.kills + \'</b><br>\' +
-         \'SHELLS FIRED: <b>\' + state.shotsFired + \'</b><br>PELLET ACCURACY: <b>\' + acc + \'%</b><br>\' +
-         \'TIME: <b>\' + Math.floor(t / 60) + \'m \' + (t % 60) + \'s</b>\';
+  return 'SCORE: <b>' + state.score + '</b><br>KILLS: <b>' + state.kills + '</b><br>' +
+         'SHELLS FIRED: <b>' + state.shotsFired + '</b><br>PELLET ACCURACY: <b>' + acc + '%</b><br>' +
+         'TIME: <b>' + Math.floor(t / 60) + 'm ' + (t % 60) + 's</b>';
 }
 
 /* =====================================================================
@@ -738,7 +738,7 @@ function tryFire() {
     const bab = hit.object.userData.baboon;
     if (bab && bab.alive) {
       state.pelletHits++;
-      const dmg = hit.object.userData.part === \'head\' ? PELLET_DMG_HEAD : PELLET_DMG_BODY;
+      const dmg = hit.object.userData.part === 'head' ? PELLET_DMG_HEAD : PELLET_DMG_BODY;
       damageBaboon(bab, dmg);
     }
   }
@@ -758,7 +758,7 @@ function tryPump() {
 }
 
 function tryReload() {
-  if (state.phase !== \'playing\') return;
+  if (state.phase !== 'playing') return;
   if (state.reloading || state.ammo >= MAG_SIZE) return;
   state.reloading = true; state.reloadT = 0;
   updateAmmoUI();
@@ -792,7 +792,7 @@ function damageBaboon(b, dmg) {
     state.kills++;
     const pts = 100 * (state.levelIdx + 1);
     state.score += pts;
-    killFeed(\'Baboon eliminated  +\' + pts);
+    killFeed('Baboon eliminated  +' + pts);
     updateScoreUI();
     setTimeout(() => checkLevelClear(), 50);
   } else if (Math.random() < 0.35) {
@@ -801,7 +801,7 @@ function damageBaboon(b, dmg) {
 }
 
 function damagePlayer(dmg, source) {
-  if (state.phase !== \'playing\') return;
+  if (state.phase !== 'playing') return;
   state.playerHp -= dmg;
   damageFlash();
   playHurt();
@@ -835,7 +835,7 @@ function baboonShoot(b, dist) {
     else if (Math.random() < Math.min(0.5, (PLAYER_RADIUS * PLAYER_RADIUS) / (R * R + 0.05))) hitsOnPlayer++;
   }
   if (hitsOnPlayer > 0) {
-    damagePlayer(hitsOnPlayer * 7, \'shotgun\');
+    damagePlayer(hitsOnPlayer * 7, 'shotgun');
   }
 }
 
@@ -893,7 +893,7 @@ function updateBaboons(dt, playerPos) {
       // still melee if player closes in
       b.meleeCd -= dt;
       if (dist < 2.2 && b.meleeCd <= 0) {
-        damagePlayer(12, \'melee\'); b.meleeCd = 1.1;
+        damagePlayer(12, 'melee'); b.meleeCd = 1.1;
       }
     } else {
       // Unarmed: charge and melee
@@ -903,7 +903,7 @@ function updateBaboons(dt, playerPos) {
       }
       b.meleeCd -= dt;
       if (dist < 2.2 && b.meleeCd <= 0) {
-        damagePlayer(10 + state.levelIdx * 2, \'melee\');
+        damagePlayer(10 + state.levelIdx * 2, 'melee');
         b.meleeCd = 1.0;
         // lunge visual
         b.group.position.addScaledVector(_v1, 0.25);
@@ -967,47 +967,47 @@ function startLevel(idx) {
   const cfg = LEVELS[idx];
   spawnLevel(idx);
   // transition card
-  $id(\'transition-title\').textContent = \'LEVEL \' + (idx + 1);
-  $id(\'transition-sub\').textContent = cfg.name;
-  $id(\'transition-desc\').innerHTML =
-    cfg.desc + \'<br><br>\' + cfg.count + \' baboons &bull; \' + cfg.hp + \' HP &bull; speed \' + cfg.speed +
-    (cfg.armed ? \' &bull; <b style="color:#ff5340">ARMED WITH SHOTGUNS</b>\' : \'\') + \' &bull; \' + cfg.area + \'m area\';
-  $id(\'transition-screen\').classList.remove(\'hidden\');
-  state.phase = \'transition\';
+  $id('transition-title').textContent = 'LEVEL ' + (idx + 1);
+  $id('transition-sub').textContent = cfg.name;
+  $id('transition-desc').innerHTML =
+    cfg.desc + '<br><br>' + cfg.count + ' baboons &bull; ' + cfg.hp + ' HP &bull; speed ' + cfg.speed +
+    (cfg.armed ? ' &bull; <b style="color:#ff5340">ARMED WITH SHOTGUNS</b>' : '') + ' &bull; ' + cfg.area + 'm area';
+  $id('transition-screen').classList.remove('hidden');
+  state.phase = 'transition';
   setTimeout(() => {
-    $id(\'transition-screen\').classList.add(\'hidden\');
-    if (state.phase === \'transition\') state.phase = \'playing\';
+    $id('transition-screen').classList.add('hidden');
+    if (state.phase === 'transition') state.phase = 'playing';
     updateScoreUI();
   }, 2800);
 }
 
 function checkLevelClear() {
-  if (state.phase !== \'playing\' && state.phase !== \'transition\') return;
+  if (state.phase !== 'playing' && state.phase !== 'transition') return;
   if (baboons.some(b => b.alive)) return;
   if (state.levelIdx + 1 >= LEVELS.length) {
     victory();
   } else {
     state.score += 500; // level clear bonus
-    killFeed(\'Level \' + (state.levelIdx + 1) + \' cleared  +500\');
+    killFeed('Level ' + (state.levelIdx + 1) + ' cleared  +500');
     setTimeout(() => startLevel(state.levelIdx + 1), 1200);
   }
 }
 
 function gameOver() {
-  state.phase = \'gameover\';
-  $id(\'gameover-stats\').innerHTML = statsHTML() +
-    \'<br>REACHED: <b>LEVEL \' + (state.levelIdx + 1) + \' - \' + LEVELS[state.levelIdx].name + \'</b>\';
-  $id(\'gameover-screen\').classList.remove(\'hidden\');
-  hud.style.display = \'none\';
+  state.phase = 'gameover';
+  $id('gameover-stats').innerHTML = statsHTML() +
+    '<br>REACHED: <b>LEVEL ' + (state.levelIdx + 1) + ' - ' + LEVELS[state.levelIdx].name + '</b>';
+  $id('gameover-screen').classList.remove('hidden');
+  hud.style.display = 'none';
   controls.unlock();
 }
 
 function victory() {
   state.score += 2000;
-  state.phase = \'victory\';
-  $id(\'victory-stats\').innerHTML = statsHTML() + \'<br>ALL 5 DISTRICTS CLEARED\';
-  $id(\'victory-screen\').classList.remove(\'hidden\');
-  hud.style.display = \'none\';
+  state.phase = 'victory';
+  $id('victory-stats').innerHTML = statsHTML() + '<br>ALL 5 DISTRICTS CLEARED';
+  $id('victory-screen').classList.remove('hidden');
+  hud.style.display = 'none';
   controls.unlock();
 }
 
@@ -1018,41 +1018,41 @@ function resetGame() {
   state.startTime = performance.now();
   camera.position.set(0, EYE_HEIGHT, 130);
   camera.rotation.set(0, Math.PI, 0);
-  $id(\'killfeed\').innerHTML = \'\';
+  $id('killfeed').innerHTML = '';
   updateAmmoUI(); updateHealthUI();
 }
 
 function beginGame() {
   initAudio();
-  [\'start-screen\', \'pause-screen\', \'gameover-screen\', \'victory-screen\'].forEach(id => $id(id).classList.add(\'hidden\'));
-  hud.style.display = \'block\';
+  ['start-screen', 'pause-screen', 'gameover-screen', 'victory-screen'].forEach(id => $id(id).classList.add('hidden'));
+  hud.style.display = 'block';
   resetGame();
   controls.lock();
   startLevel(0);
 }
 
 /* Screen buttons */
-$id(\'start-btn\').addEventListener(\'click\', beginGame);
-$id(\'restart-btn-go\').addEventListener(\'click\', beginGame);
-$id(\'restart-btn-vic\').addEventListener(\'click\', beginGame);
-$id(\'restart-btn-pause\').addEventListener(\'click\', beginGame);
-$id(\'resume-btn\').addEventListener(\'click\', () => {
-  $id(\'pause-screen\').classList.add(\'hidden\');
+$id('start-btn').addEventListener('click', beginGame);
+$id('restart-btn-go').addEventListener('click', beginGame);
+$id('restart-btn-vic').addEventListener('click', beginGame);
+$id('restart-btn-pause').addEventListener('click', beginGame);
+$id('resume-btn').addEventListener('click', () => {
+  $id('pause-screen').classList.add('hidden');
   controls.lock();
 });
 
 /* Pause via pointer-lock loss (Esc) */
-controls.addEventListener(\'unlock\', () => {
-  if (state.phase === \'playing\' || state.phase === \'transition\') {
-    state.phase = \'paused\';
-    $id(\'pause-stats\').innerHTML = statsHTML();
-    $id(\'pause-screen\').classList.remove(\'hidden\');
+controls.addEventListener('unlock', () => {
+  if (state.phase === 'playing' || state.phase === 'transition') {
+    state.phase = 'paused';
+    $id('pause-stats').innerHTML = statsHTML();
+    $id('pause-screen').classList.remove('hidden');
   }
 });
-controls.addEventListener(\'lock\', () => {
-  if (state.phase === \'paused\') {
-    $id(\'pause-screen\').classList.add(\'hidden\');
-    state.phase = \'playing\';
+controls.addEventListener('lock', () => {
+  if (state.phase === 'paused') {
+    $id('pause-screen').classList.add('hidden');
+    state.phase = 'playing';
     prevTime = performance.now(); // do not count paused time as dt
   }
 });
@@ -1063,12 +1063,12 @@ controls.addEventListener(\'lock\', () => {
 const velocity = new THREE.Vector3();
 let bobPhase = 0;
 function updatePlayer(dt) {
-  const speed = WALK_SPEED * ((keys[\'ShiftLeft\'] || keys[\'ShiftRight\']) ? SPRINT_MULT : 1);
+  const speed = WALK_SPEED * ((keys['ShiftLeft'] || keys['ShiftRight']) ? SPRINT_MULT : 1);
   let fwd = 0, side = 0;
-  if (keys[\'KeyW\']) fwd += 1;
-  if (keys[\'KeyS\']) fwd -= 1;
-  if (keys[\'KeyD\']) side += 1;
-  if (keys[\'KeyA\']) side -= 1;
+  if (keys['KeyW']) fwd += 1;
+  if (keys['KeyS']) fwd -= 1;
+  if (keys['KeyD']) side += 1;
+  if (keys['KeyA']) side -= 1;
   const len = Math.hypot(fwd, side) || 1;
   velocity.x = THREE.MathUtils.lerp(velocity.x, (side / len) * speed, 1 - Math.pow(0.0001, dt));
   velocity.z = THREE.MathUtils.lerp(velocity.z, (fwd / len) * speed, 1 - Math.pow(0.0001, dt));
@@ -1103,9 +1103,9 @@ function updateCrosshair(dt) {
   const fovRad = camera.fov * Math.PI / 180;
   let px = ang / fovRad * window.innerHeight;
   px = THREE.MathUtils.clamp(px, 8, 220);
-  const sc = $id(\'spread-circle\');
-  sc.style.width = px + \'px\';
-  sc.style.height = px + \'px\';
+  const sc = $id('spread-circle');
+  sc.style.width = px + 'px';
+  sc.style.height = px + 'px';
 }
 
 /* =====================================================================
@@ -1118,7 +1118,7 @@ function updateGun(dt) {
   gun.position.z = -0.5 + r * 0.12;
   gun.rotation.x = r * 0.18;
 
-  const pumpHandle = gun.getObjectByName(\'pump\');
+  const pumpHandle = gun.getObjectByName('pump');
   if (state.pumping) {
     state.pumpT += dt;
     const t = Math.min(1, state.pumpT / 0.38);
@@ -1153,9 +1153,9 @@ function animate() {
   let dt = Math.min(0.05, (now - prevTime) / 1000);
   prevTime = now;
 
-  if (state.phase === \'playing\' || state.phase === \'transition\') {
+  if (state.phase === 'playing' || state.phase === 'transition') {
     updatePlayer(dt);
-    if (state.phase === \'playing\') updateBaboons(dt, camera.position);
+    if (state.phase === 'playing') updateBaboons(dt, camera.position);
     updateGun(dt);
     updateCrosshair(dt);
   }
