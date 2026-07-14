@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Baboons Over London — Claude Version</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0a0e1a; --panel:#11182a; --text:#e8eef8; --muted:#9aabc4; --claude:#ff8c42; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:radial-gradient(circle at 15% 85%,rgba(255,140,66,.09),transparent 38%),var(--bg); color:var(--text); font-family:Inter,system-ui,sans-serif; display:flex; align-items:center; justify-content:center; padding:2rem; }
+    .wrap { width:min(720px,100%); }
+    .header { text-align:center; margin-bottom:2.5rem; }
+    .eyebrow { color:var(--claude); text-transform:uppercase; letter-spacing:.16em; font-size:.85rem; font-weight:800; }
+    h1 { font-size:clamp(2rem,6vw,3.2rem); margin:.5rem 0 .3rem; letter-spacing:-.04em; }
+    h1 span { color:var(--claude); }
+    .subtitle { color:var(--muted); font-size:1.1rem; margin:0; }
+    .cards { display:grid; gap:1.2rem; }
+    .card { background:rgba(17,24,42,.84); border:1px solid rgba(255,140,66,.25); border-radius:16px; padding:1.5rem; text-decoration:none; color:var(--text); transition:transform .2s,border-color .2s; display:flex; align-items:center; justify-content:space-between; }
+    .card:hover { transform:translateY(-3px); border-color:var(--claude); box-shadow:0 12px 35px rgba(255,140,66,.15); }
+    .card h3 { margin:0 0 .3rem; font-size:1.3rem; }
+    .card p { margin:0; color:var(--muted); font-size:.9rem; }
+    .arrow { font-size:1.8rem; color:var(--claude); font-weight:900; }
+    .back { display:inline-block; margin-top:2rem; color:var(--muted); text-decoration:none; font-size:.9rem; }
+    .back:hover { color:var(--text); }
+    .footer-imgs { text-align:center; margin-top:2rem; opacity:.5; }
+    .footer-imgs img { width:18px; height:18px; object-fit:contain; border-radius:3px; vertical-align:middle; }
+    .footer-imgs span { font-size:.7rem; font-weight:700; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; margin:0 6px; }
+    @media(max-width:600px){ .card { flex-direction:column; gap:.8rem; text-align:center; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="eyebrow">◆ Claude Code v2.1 · Fable 5 High Effort</div>
+      <h1>Baboons <span>Over London</span></h1>
+      <p class="subtitle">Claude Version — 3 Cold Runs</p>
+    </div>
+    <div class="cards">
+      <a class="card" href="game_run_1.html"><div><h3>Run 1</h3><p>First cold run — 941.2s · $7.12</p></div><span class="arrow">▶</span></a>
+      <a class="card" href="game_run_2.html"><div><h3>Run 2</h3><p>Second cold run — 962.8s · $6.81</p></div><span class="arrow">▶</span></a>
+      <a class="card" href="game_run_3.html"><div><h3>Run 3</h3><p>Third cold run — 955.9s · $6.91</p></div><span class="arrow">▶</span></a>
+    </div>
+    <div style="text-align:center">
+      <a class="back" href="../presentation.html">← Back to presentation</a>
+    </div>
+    <div class="footer-imgs">
+      <img src="../assets/baboon.jpg" alt="" /><span>Baboons Over London</span><img src="../assets/london.jpg" alt="" style="background:rgba(255,255,255,.85);border-radius:3px" />
+    </div>
+  </div>
+</body>
+</html>
