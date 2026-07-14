@@ -76,12 +76,56 @@
       .counter { bottom:1.25rem; right:50%; transform:translateX(50%); }
     }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition-duration:.01ms!important; } }
+
+    /* ---------- ESL branding / credits ---------- */
+    .brand-chip{position:fixed;top:14px;left:16px;z-index:40;display:flex;align-items:center;gap:9px;
+      background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.5);border-radius:999px;
+      padding:5px 13px 5px 8px;box-shadow:0 10px 30px -12px rgba(0,0,0,.6);text-decoration:none;transition:transform .2s,opacity .2s}
+    .brand-chip:hover{opacity:.88;transform:translateY(-1px)}
+    .brand-chip img{height:20px;display:block}
+    .brand-chip span{color:#1b2233;font-weight:800;font-size:11.5px;letter-spacing:.4px}
+    .credits{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:760px;margin-top:clamp(1rem,3vh,1.8rem)}
+    .credit{background:rgba(17,24,42,.84);border:1px solid rgba(154,171,196,.15);border-radius:16px;padding:clamp(11px,1.4vw,15px);min-width:0}
+    .credit .lbl{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+    .credit h3{font-size:.98rem;margin:3px 0 2px}
+    .credit p{font-size:.84rem;color:var(--muted);margin:0 0 2px}
+    .credit a{color:var(--amp);text-decoration:none;font-size:.84rem;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-word}
+    .credit a:hover{text-decoration:underline}
+    .logo-card{background:#fff;border-radius:12px;padding:8px 12px;display:inline-block;margin-bottom:7px;
+      box-shadow:0 16px 44px -18px rgba(0,0,0,.7)}
+    .logo-card img{height:clamp(26px,3.4vw,34px);display:block}
+    .credit.author-card{display:flex;align-items:center;gap:13px}
+    .avatar{width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid var(--amp);
+      box-shadow:0 8px 24px rgba(0,0,0,.4);flex:none}
+    .divider{height:1px;width:min(560px,86%);background:linear-gradient(90deg,transparent,rgba(154,171,196,.25),transparent);margin:12px 0 0}
+    @media(max-width:640px){.credits{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
+  <a class="brand-chip" href="https://eswlab.com/" target="_blank" rel="noopener"><img src="assets/esl_logo.png" alt="ESL" /><span>Engineering Software Lab</span></a>
+
   <main class="deck" id="deck">
     <section class="slide title-slide active">
-      <div class="content"><div class="eyebrow">AI Coding Agent Benchmark</div><h1>Baboons<br><span>Over London</span></h1><p class="subtitle">Amp Ultra vs Claude Code</p><span class="badge">Both using Claude Fable 5</span></div>
+      <div class="content"><div class="eyebrow">AI Coding Agent Benchmark</div><h1>Baboons<br><span>Over London</span></h1><p class="subtitle">Amp Ultra vs Claude Code</p><span class="badge">Both using Claude Fable 5</span>
+        <div class="divider"></div>
+        <div class="credits">
+          <div class="credit">
+            <div class="lbl">Prepared by</div>
+            <div class="logo-card"><img src="assets/esl_logo.png" alt="ESL — Engineering Software Lab" /></div>
+            <h3>ESL — Engineering Software Lab</h3>
+            <p>Software Engineering Consultants</p>
+            <a href="https://eswlab.com/contact-us/" target="_blank" rel="noopener">eswlab.com/contact-us →</a>
+          </div>
+          <div class="credit author-card">
+            <img class="avatar" src="assets/daniel.jpg" alt="Daniel Liezrowice" />
+            <div style="min-width:0">
+              <div class="lbl">Author</div>
+              <h3>Daniel Liezrowice</h3>
+              <a href="https://www.linkedin.com/in/liezrowice/" target="_blank" rel="noopener">LinkedIn →</a>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="swipe-hint" id="swipeHint">← Swipe to navigate →</div>
     </section>
 
